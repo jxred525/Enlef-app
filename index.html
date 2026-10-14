@@ -7,12 +7,14 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="ENLEF Pro" />
-  <title>ENLEF-NEM Pro | Sistema de Gestión Pedagógica y Evaluación</title>
+  <title>ENLEF-NEM Pro | Sistema Integral de Docencia, APA 7 y Juegos NEM</title>
 
   <!-- Tailwind CSS CDN -->
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons CDN -->
   <script src="https://unpkg.com/lucide@latest"></script>
+  <!-- PDF.js CDN para lectura de texto en rúbricas PDF adjuntas -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
 
   <script>
     tailwind.config = {
@@ -33,7 +35,7 @@
   </script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap');
 
     body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
@@ -42,7 +44,6 @@
       -webkit-tap-highlight-color: transparent;
     }
 
-    /* Scrollbar sutil para tablas en tablet/móvil */
     ::-webkit-scrollbar {
       width: 6px;
       height: 6px;
@@ -55,7 +56,6 @@
       border-radius: 3px;
     }
 
-    /* Botones táctiles de evaluación para patio */
     .eval-btn {
       min-width: 40px;
       min-height: 38px;
@@ -66,11 +66,30 @@
       transform: scale(0.92);
     }
 
+    /* Formato académico APA 7ma Edición */
+    .apa-page {
+      font-family: 'Times New Roman', Times, serif;
+      line-height: 2.0;
+      font-size: 12pt;
+      color: #000000;
+      background: #ffffff;
+    }
+    .apa-paragraph {
+      text-indent: 1.27cm;
+      margin-bottom: 0;
+      text-align: left;
+    }
+    .apa-hanging-indent {
+      padding-left: 1.27cm;
+      text-indent: -1.27cm;
+      margin-bottom: 8pt;
+      text-align: left;
+    }
+
     /* Estilos exclusivos para impresión oficial (@media print) */
     @media print {
       @page {
-        size: landscape;
-        margin: 10mm;
+        margin: 12mm;
       }
       body {
         background: #ffffff !important;
@@ -86,7 +105,7 @@
       .print-table {
         width: 100%;
         border-collapse: collapse;
-        margin-bottom: 12px;
+        margin-bottom: 10px;
         page-break-inside: auto;
       }
       .print-table tr {
@@ -107,6 +126,9 @@
         print-color-adjust: exact;
         font-weight: 700;
       }
+      .apa-page-break {
+        page-break-before: always;
+      }
     }
   </style>
 </head>
@@ -124,13 +146,16 @@
             <h1 class="font-bold text-base md:text-lg tracking-tight leading-none">ENLEF "Pedro Reynol Ozuna Henning"</h1>
             <span class="hidden sm:inline-block text-[11px] font-semibold uppercase px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-full">NEM 2026</span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">Tuxtla Gutiérrez, Chiapas • Sistema Integral de Docencia y Evaluación</p>
+          <p class="text-xs text-slate-400 mt-0.5">Tuxtla Gutiérrez, Chiapas • Sistema Integral de Docencia, APA 7 y Evaluación</p>
         </div>
       </div>
 
-      <!-- Acciones Rápidas / Estado Offline / Instalación -->
-      <div class="flex items-center gap-2">
-        <span id="network-badge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+      <!-- Acciones Rápidas / Configurar Membrete y Logos / Instalación -->
+      <div class="flex flex-wrap items-center gap-2">
+        <button onclick="openHeaderConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+          <i data-lucide="image" class="w-4 h-4"></i> Membrete y Logos Oficiales
+        </button>
+        <span id="network-badge" class="hidden md:flex text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 items-center gap-1.5">
           <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
           <span id="network-text">Activo (Local DB)</span>
         </span>
@@ -140,25 +165,33 @@
       </div>
     </div>
 
-    <!-- NAVEGACIÓN DE LOS 4 MÓDULOS -->
+    <!-- NAVEGACIÓN DE LOS 6 MÓDULOS -->
     <nav class="bg-slate-800/90 border-t border-slate-700/80 overflow-x-auto">
-      <div class="max-w-7xl mx-auto px-2 sm:px-4 flex space-x-1 sm:space-x-2 py-1.5">
-        <button onclick="switchTab('tareas')" id="tab-btn-tareas" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow">
+      <div class="max-w-7xl mx-auto px-2 sm:px-4 flex space-x-1 sm:space-x-1.5 py-1.5">
+        <button onclick="switchTab('tareas')" id="tab-btn-tareas" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow">
           <i data-lucide="check-square" class="w-4 h-4"></i>
-          <span>1. Gestor de Tareas ENLEF</span>
-          <span id="badge-count-tareas" class="ml-1 px-1.5 py-0.2 bg-slate-900/50 rounded-full text-[11px]">0</span>
+          <span>1. Gestor Tareas + IA</span>
+          <span id="badge-count-tareas" class="ml-0.5 px-1.5 py-0.2 bg-slate-900/50 rounded-full text-[11px]">0</span>
         </button>
-        <button onclick="switchTab('planeaciones')" id="tab-btn-planeaciones" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+        <button onclick="switchTab('planeaciones')" id="tab-btn-planeaciones" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
           <i data-lucide="clipboard-list" class="w-4 h-4"></i>
-          <span>2. Plantilla Maestra Planeación</span>
+          <span>2. Plantilla Planeación</span>
         </button>
-        <button onclick="switchTab('evaluacion')" id="tab-btn-evaluacion" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+        <button onclick="switchTab('evaluacion')" id="tab-btn-evaluacion" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
           <i data-lucide="award" class="w-4 h-4"></i>
-          <span>3. Escala de Apreciación (Patio)</span>
+          <span>3. Escala (Patio)</span>
         </button>
-        <button onclick="switchTab('exportar')" id="tab-btn-exportar" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+        <button onclick="switchTab('apa7')" id="tab-btn-apa7" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="book-marked" class="w-4 h-4 text-amber-400"></i>
+          <span>4. Creador APA 7</span>
+        </button>
+        <button onclick="switchTab('juegos')" id="tab-btn-juegos" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="gamepad-2" class="w-4 h-4 text-emerald-400"></i>
+          <span>5. Juegos NEM</span>
+        </button>
+        <button onclick="switchTab('exportar')" id="tab-btn-exportar" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
           <i data-lucide="printer" class="w-4 h-4"></i>
-          <span>4. Impresión Oficial y Respaldo</span>
+          <span>6. Impresión y Logos</span>
         </button>
       </div>
     </nav>
@@ -168,10 +201,40 @@
   <main class="no-print flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5">
 
     <!-- ===================================================================
-         MÓDULO 1: GESTOR Y CLASIFICADOR INTELIGENTE DE TAREAS ENLEF
+         MÓDULO 1: GESTOR Y CLASIFICADOR INTELIGENTE DE TAREAS ENLEF + ADJUNTOS IA
     ==================================================================== -->
     <section id="module-tareas" class="module-section space-y-6">
-      <!-- Encabezado y Gestión de Materias -->
+
+      <!-- NUEVA CAJA: DETECTOR AUTOMÁTICO DE RÚBRICAS Y DOCUMENTOS ADJUNTOS -->
+      <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 text-white rounded-2xl shadow-md border border-slate-700 p-4 sm:p-5">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+          <div class="space-y-1">
+            <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950">
+              <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Clasificador Inteligente de Rúbricas y Jornadas
+            </span>
+            <h3 class="text-base sm:text-lg font-bold">Adjunta tu Rúbrica o Instrucciones (PDF, TXT, DOC o Imagen)</h3>
+            <p class="text-xs text-slate-300">
+              El asistente analiza el documento adjunto, detecta automáticamente la asignatura de la ENLEF, extrae el título, genera el bosquejo APA 7 y lo clasifica en tu tablero de control.
+            </p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2 shrink-0">
+            <label class="cursor-pointer bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow flex items-center gap-2 transition">
+              <i data-lucide="paperclip" class="w-4 h-4"></i>
+              <span>Subir Rúbrica / Documento</span>
+              <input type="file" id="rubric-file-input" accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg" onchange="handleSmartDocumentUpload(event)" class="hidden" />
+            </label>
+            <button type="button" onclick="autoDetectAndSaveFromInstructions()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow flex items-center gap-1.5 transition" title="Si pegaste texto abajo, detecta la materia automáticamente">
+              <i data-lucide="wand-2" class="w-4 h-4"></i> Auto-Clasificar Texto
+            </button>
+          </div>
+        </div>
+        <div id="attachment-status-bar" class="hidden mt-3 pt-3 border-t border-slate-700/80 flex flex-wrap items-center justify-between gap-2 text-xs text-sky-300">
+          <span id="attachment-status-text" class="flex items-center gap-1.5 font-medium"></span>
+          <span id="detected-subject-pill" class="px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-400/30 font-bold"></span>
+        </div>
+      </div>
+
+      <!-- Encabezado y Formulario de Captura Rápida -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
@@ -180,7 +243,7 @@
               Gestor Académico y Estructurador de Tareas ENLEF
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Clasifica tus entregas por asignatura curricular y genera bosquejos académicos con formato APA automáticamente.
+              Clasifica tus entregas por asignatura curricular y envíalas en un clic al Creador de Documentos APA 7.
             </p>
           </div>
           <div class="flex items-center gap-2">
@@ -193,6 +256,7 @@
         <!-- Formulario de Captura Rápida de Tarea -->
         <form id="task-form" onsubmit="saveTask(event)" class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4">
           <input type="hidden" id="task-id" />
+          <input type="hidden" id="task-attachment-name" />
 
           <div class="md:col-span-5">
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Asignatura Curricular ENLEF *</label>
@@ -221,15 +285,21 @@
 
           <div class="md:col-span-12">
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Instrucciones Detalladas / Rúbrica del Docente *</label>
-            <textarea id="task-instructions" rows="3" required placeholder="Pega o escribe aquí las indicaciones de la tarea. El asistente pedagógico usará este texto y la materia seleccionada para estructurar tu trabajo..." class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+            <textarea id="task-instructions" rows="3" required oninput="previewSubjectDetection(this.value)" placeholder="Pega aquí las indicaciones o sube tu archivo arriba. El detector identificará la materia automáticamente..." class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
           </div>
 
           <!-- Botón de Generar Desglose Académico + Guardar -->
           <div class="md:col-span-12 flex flex-wrap items-center justify-between gap-3 pt-1">
-            <button type="button" onclick="generateAcademicOutlineFromForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition">
-              <i data-lucide="sparkles" class="w-4 h-4"></i>
-              Generar Desglose / Estructura Académica (APA)
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="generateAcademicOutlineFromForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition">
+                <i data-lucide="sparkles" class="w-4 h-4"></i>
+                Generar Desglose / Estructura Académica (APA 7)
+              </button>
+              <button type="button" onclick="sendFormTaskToApaEditor()" class="bg-slate-800 hover:bg-slate-900 text-amber-300 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition">
+                <i data-lucide="book-marked" class="w-4 h-4"></i>
+                Redactar Trabajo Completo en APA 7
+              </button>
+            </div>
 
             <div class="flex items-center gap-2">
               <button type="button" onclick="resetTaskForm()" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs sm:text-sm hover:bg-slate-100">
@@ -292,8 +362,11 @@
           <select id="plan-selector" onchange="loadSelectedPlan(this.value)" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 bg-slate-50 focus:ring-2 focus:ring-sky-500"></select>
         </div>
         <div class="flex flex-wrap items-center gap-2">
+          <button type="button" onclick="openHeaderConfigModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="image" class="w-4 h-4"></i> Editar Logos y Encabezado Oficial
+          </button>
           <button onclick="createNewBlankPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
-            <i data-lucide="file-plus" class="w-4 h-4 text-sky-600"></i> Nueva Planeación en Blanco
+            <i data-lucide="file-plus" class="w-4 h-4 text-sky-600"></i> Nueva Planeación
           </button>
           <button onclick="duplicateCurrentPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
             <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> Duplicar
@@ -353,7 +426,6 @@
               <input type="text" id="plan-grupo" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. A y B" />
             </div>
 
-            <!-- Temporalidad -->
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Mes / Periodo</label>
               <input type="text" id="plan-mes" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Abril / Octubre" />
@@ -399,7 +471,7 @@
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Contenido del Programa Sintético *</label>
-                <input type="text" id="plan-contenido" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium" placeholder="Ej. Capacidades y habilidades motrices / Potencialidades cognitivas, expresivas, motrices..." />
+                <input type="text" id="plan-contenido" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium" placeholder="Ej. Capacidades y habilidades motrices..." />
               </div>
             </div>
 
@@ -430,11 +502,16 @@
                 <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
                 III. Dosificación de Sesiones (Fases, Evaluación, Estrategias y Recursos)
               </h3>
-              <p class="text-xs text-slate-300">Los criterios de evaluación de cada sesión alimentan automáticamente la Escala de Apreciación del Módulo 3.</p>
+              <p class="text-xs text-slate-300">Puedes agregar sesiones manualmente o enviarlas con 1 clic desde el Recomendador de Juegos NEM (Módulo 5).</p>
             </div>
-            <button type="button" onclick="addSessionBlock()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
-              <i data-lucide="plus" class="w-4 h-4"></i> Agregar Sesión
-            </button>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="switchTab('juegos')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+                <i data-lucide="gamepad-2" class="w-4 h-4"></i> Buscar Juegos NEM
+              </button>
+              <button type="button" onclick="addSessionBlock()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+                <i data-lucide="plus" class="w-4 h-4"></i> Agregar Sesión
+              </button>
+            </div>
           </div>
 
           <div id="sessions-container" class="space-y-5"></div>
@@ -444,7 +521,7 @@
         <div class="sticky bottom-3 z-30 bg-slate-900/95 backdrop-blur text-white p-3.5 rounded-2xl shadow-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3">
           <div class="text-xs text-slate-300 flex items-center gap-2">
             <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-            <span>Plantilla Oficial sincronizada con el Generador de Escalas e Impresión.</span>
+            <span>Plantilla Oficial sincronizada con Membrete, Logos y Escala de Apreciación.</span>
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
@@ -465,7 +542,6 @@
          MÓDULO 3: GENERADOR AUTOMÁTICO DE ESCALAS DE APRECIACIÓN (MODO PATIO)
     ==================================================================== -->
     <section id="module-evaluacion" class="module-section hidden space-y-6">
-      <!-- Cabecera de la Escala de Apreciación -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
           <div>
@@ -474,6 +550,9 @@
             <p id="eval-header-meta" class="text-xs sm:text-sm text-slate-600"></p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openHeaderConfigModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+              <i data-lucide="image" class="w-4 h-4"></i> Logos y Encabezado
+            </button>
             <button onclick="openBulkStudentsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
               <i data-lucide="users" class="w-4 h-4 text-sky-600"></i> Cargar Lista Rápida (30-40 Alumnos)
             </button>
@@ -481,7 +560,7 @@
               <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel (CSV)
             </button>
             <button onclick="saveAndGoToPrint('eval')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Escala
+              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Escala con Logos
             </button>
           </div>
         </div>
@@ -528,7 +607,7 @@
         <div id="eval-indicators-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
       </div>
 
-      <!-- Lista Interactiva de Alumnos para Calificar en Patio (Tablet / Celular) -->
+      <!-- Lista Interactiva de Alumnos para Calificar en Patio -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
         <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50">
           <div>
@@ -571,31 +650,218 @@
     </section>
 
     <!-- ===================================================================
-         MÓDULO 4: EXPORTACIÓN, RESPALDO E IMPRESIÓN OFICIAL
+         MÓDULO 4 (NUEVO): CREADOR Y FORMATEADOR DE DOCUMENTOS APA 7ma EDICIÓN
+    ==================================================================== -->
+    <section id="module-apa7" class="module-section hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">Normativa Académica APA 7ma Edición + Membrete ENLEF</span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
+              <i data-lucide="book-marked" class="w-5 h-5 text-sky-600"></i>
+              Generador de Trabajos Académicos en Formato APA 7
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+              Crea ensayos, reportes de lectura, diagnósticos y propuestas con portada oficial (con ambos logotipos institucionales), interlineado doble, sangría de 1.27 cm y referencias con sangría francesa automática.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="apa-doc-selector" onchange="loadSelectedApaDoc(this.value)" class="rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold bg-slate-50"></select>
+            <button type="button" onclick="createNewApaDoc()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1">
+              <i data-lucide="file-plus" class="w-4 h-4 text-sky-600"></i> Nuevo APA 7
+            </button>
+            <button type="button" onclick="exportApaToWord()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="file-text" class="w-4 h-4"></i> Descargar Word (.doc)
+            </button>
+            <button type="button" onclick="saveAndGoToPrint('apa')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
+              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / PDF APA 7
+            </button>
+          </div>
+        </div>
+
+        <form id="apa-form" onsubmit="saveCurrentApaDoc(event)" class="mt-5 space-y-5">
+          <!-- Datos de la Portada Estudiantil APA 7 -->
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+            <div class="sm:col-span-2 lg:col-span-3 flex items-center justify-between">
+              <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">1. Datos de Portada Oficial APA 7 (Incluye Logos de Secretaría y ENLEF)</h4>
+              <button type="button" onclick="autoFillApaContentWithAI()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Autocompletar Redacción Base según Asignatura
+              </button>
+            </div>
+
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Título del Trabajo (Negrita y Centrado en APA 7) *</label>
+              <input type="text" id="apa-title" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white" placeholder="Ej. La Intervención Motriz Inclusiva en la Educación Secundaria bajo la NEM" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Asignatura ENLEF *</label>
+              <select id="apa-subject" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"></select>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Autor(es) (Docente en Formación) *</label>
+              <input type="text" id="apa-author" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" placeholder="Tu nombre completo" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Catedrático(a) Titular de la Materia</label>
+              <input type="text" id="apa-instructor" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" placeholder="Ej. Mtro. / Dr. Nombre del Docente" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fecha de Entrega</label>
+              <input type="text" id="apa-date" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" placeholder="Ej. 13 de octubre de 2026" />
+            </div>
+          </div>
+
+          <!-- Cuerpo del Documento APA 7 -->
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Resumen / Introducción (Aplica sangría de 1.27 cm automáticamente al imprimir)</label>
+              <textarea id="apa-intro" rows="4" class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Escribe tus párrafos separados por Enter. El sistema les aplicará fuente Times New Roman 12pt, interlineado doble y sangría de primera línea (1.27 cm)..."></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Desarrollo y Fundamentación Pedagógica (Marco NEM)</label>
+              <textarea id="apa-body" rows="6" class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Desarrolla aquí tu análisis teórico, citas narrativas o parentéticas, ej. (Secretaría de Educación Pública [SEP], 2022) y propuesta de intervención..."></textarea>
+            </div>
+            <div class="md:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Conclusiones y Reflexión Docente</label>
+              <textarea id="apa-conclusions" rows="3" class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Conclusiones y hallazgos derivados de tu práctica o análisis académico..."></textarea>
+            </div>
+          </div>
+
+          <!-- Generador Automático de Referencias y Citas APA 7 -->
+          <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 space-y-4">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div>
+                <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                  <i data-lucide="quote" class="w-4 h-4"></i> Constructor Rápido de Referencias APA 7 (Sangría Francesa Automática)
+                </h4>
+                <p class="text-xs text-slate-300">Llena los datos de un libro, plan de estudios o artículo y el sistema armará la cita en el texto y la referencia final.</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-slate-900">
+              <input type="text" id="ref-author" placeholder="Autor(es) ej. Castañer, M." class="rounded-lg px-2.5 py-2 text-xs bg-white" />
+              <input type="text" id="ref-year" placeholder="Año ej. 2022" class="rounded-lg px-2.5 py-2 text-xs bg-white" />
+              <input type="text" id="ref-title" placeholder="Título de la obra en cursiva" class="rounded-lg px-2.5 py-2 text-xs bg-white sm:col-span-2" />
+              <input type="text" id="ref-source" placeholder="Editorial / Fuente ej. SEP o INDE" class="rounded-lg px-2.5 py-2 text-xs bg-white" />
+            </div>
+
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <div class="flex flex-wrap gap-1.5">
+                <button type="button" onclick="insertPresetReference('SEP')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Plan de Estudio SEP (2022)</button>
+                <button type="button" onclick="insertPresetReference('Bañuelos')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Sánchez Bañuelos (Didáctica EF)</button>
+                <button type="button" onclick="insertPresetReference('Devis')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Devís y Peiró (Juegos Modificados)</button>
+              </div>
+              <button type="button" onclick="addFormattedApaReference()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i> Agregar a Lista de Referencias
+              </button>
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-300 mb-1">Lista de Referencias (Una por línea)</label>
+              <textarea id="apa-references" rows="4" class="w-full rounded-xl bg-slate-950 text-slate-100 border border-slate-700 p-3 text-xs font-mono"></textarea>
+            </div>
+          </div>
+
+          <div class="flex justify-end gap-2">
+            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow">
+              <i data-lucide="save" class="w-4 h-4"></i> Guardar Documento APA 7
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         MÓDULO 5 (NUEVO): RECOMENDADOR Y GENERADOR DE JUEGOS NEM POR NIVEL Y FASE
+    ==================================================================== -->
+    <section id="module-juegos" class="module-section hidden space-y-6">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Motor Pedagógico Nueva Escuela Mexicana</span>
+            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
+              <i data-lucide="gamepad-2" class="w-5 h-5 text-emerald-600"></i>
+              Recomendador Inteligente de Juegos y Actividades por Nivel y Fase
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500">
+              Filtra por Nivel, Fase y Tipo de Estrategia Didáctica. Puedes generar nuevas propuestas dinámicas o insertar cualquier juego directamente como una sesión en tu Planeación Activa.
+            </p>
+          </div>
+          <div>
+            <button type="button" onclick="generateDynamicNemGames()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow flex items-center gap-2 transition">
+              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Generar Nuevas Ideas de Juegos NEM
+            </button>
+          </div>
+        </div>
+
+        <!-- Filtros por Nivel, Fase y Categoría de Juego -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">1. Nivel y Fase (NEM)</label>
+            <select id="filter-game-fase" onchange="renderRecommendedGames()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white">
+              <option value="ALL">Todas las Fases (Preescolar a Secundaria)</option>
+              <option value="Fase 2 (Preescolar)">Preescolar — Fase 2</option>
+              <option value="Fase 3 (1º y 2º Primaria)">Primaria (1º y 2º) — Fase 3</option>
+              <option value="Fase 4 (3º y 4º Primaria)">Primaria (3º y 4º) — Fase 4</option>
+              <option value="Fase 5 (5º y 6º Primaria)">Primaria (5º y 6º) — Fase 5</option>
+              <option value="Fase 6 (1º, 2º y 3º Secundaria)" selected>Secundaria (1º, 2º y 3º) — Fase 6</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">2. Tipo de Juego / Estrategia Didáctica</label>
+            <select id="filter-game-type" onchange="renderRecommendedGames()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white">
+              <option value="ALL">Todos los tipos de juego</option>
+              <option value="Juegos cooperativos">🤝 Juegos Cooperativos e Integración</option>
+              <option value="Lúdicos de competencia / Modificados">🏆 Lúdicos de Competencia / Iniciación y Modificados</option>
+              <option value="Motores y Coordinación">⚡ Habilidades Motrices, Reacción y Relevos</option>
+              <option value="Sensoriales e Inclusivos">🦯 Juegos Sensoriales e Inclusivos (BAP)</option>
+              <option value="Circuitos Masivos (Sin filas)">🔄 Circuitos para 30-40 Alumnos (Poco Material / Sin Filas)</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">3. Buscar por Material o Habilidad</label>
+            <input type="text" id="filter-game-search" oninput="renderRecommendedGames()" placeholder="Ej. aros, conos, botellas, velocidad, equilibrio..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" />
+          </div>
+        </div>
+
+        <!-- Tarjetas de Juegos Recomendados -->
+        <div id="games-catalog-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         MÓDULO 6: EXPORTACIÓN, RESPALDO E IMPRESIÓN OFICIAL (PLANEACIÓN, ESCALA Y APA 7)
     ==================================================================== -->
     <section id="module-exportar" class="module-section hidden space-y-6">
-      <!-- Controles de Vista de Impresión y Respaldo Inter-Dispositivos -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
         <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
               <i data-lucide="printer" class="w-5 h-5 text-sky-600"></i>
-              Centro de Impresión Oficial y Sincronización (Tablet ⇄ Celular)
+              Centro de Impresión Oficial con Logotipos y Sincronización
             </h2>
             <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Previsualiza e imprime la Tabla Oficial de Dosificación Didáctica o la Escala de Apreciación sin bordes ni botones de interfaz.
+              Todos tus documentos incluyen el logotipo de la Secretaría de Educación de Chiapas (izquierda), el texto institucional (centro) y el logotipo de la ENLEF (derecha).
             </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="setPrintMode('plan')" id="btn-mode-plan" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5">
-              <i data-lucide="table" class="w-4 h-4"></i> Vista: Planeación Oficial
+            <button onclick="openHeaderConfigModal()" class="px-3 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 flex items-center gap-1.5">
+              <i data-lucide="image" class="w-4 h-4"></i> Editar Logos y Texto Central
             </button>
-            <button onclick="setPrintMode('eval')" id="btn-mode-eval" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
-              <i data-lucide="award" class="w-4 h-4"></i> Vista: Escala de Apreciación
+            <button onclick="setPrintMode('plan')" id="btn-mode-plan" class="px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5">
+              <i data-lucide="table" class="w-4 h-4"></i> Planeación Oficial
+            </button>
+            <button onclick="setPrintMode('eval')" id="btn-mode-eval" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i data-lucide="award" class="w-4 h-4"></i> Escala de Apreciación
+            </button>
+            <button onclick="setPrintMode('apa')" id="btn-mode-apa" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i data-lucide="book-marked" class="w-4 h-4"></i> Documento APA 7
             </button>
             <button onclick="window.print()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5">
-              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / Guardar PDF Oficial
+              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / Guardar PDF
             </button>
           </div>
         </div>
@@ -603,7 +869,7 @@
         <!-- Herramientas de Respaldo JSON y CSV -->
         <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
           <div class="text-xs text-slate-600">
-            <strong>Sincronización Manual Rápida:</strong> Exporta tu base de datos en JSON para pasar tus tareas, planeaciones y listas entre tu celular y tu tablet.
+            <strong>Sincronización Manual Rápida:</strong> Exporta tu base de datos en JSON (incluye tus logos personalizados, tareas, documentos APA 7 y planeaciones) entre tu celular y tu tablet.
           </div>
           <div class="flex flex-wrap items-center gap-2">
             <button onclick="exportEvaluationCSV()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1">
@@ -620,7 +886,7 @@
         </div>
       </div>
 
-      <!-- PREVISUALIZACIÓN DEL DOCUMENTO OFICIAL (SE IMPRIME AL 100%) -->
+      <!-- PREVISUALIZACIÓN DEL DOCUMENTO OFICIAL -->
       <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-4 sm:p-8 overflow-x-auto">
         <div id="print-preview-wrapper"></div>
       </div>
@@ -630,6 +896,79 @@
 
   <!-- CONTENEDOR EXCLUSIVO PARA IMPRESIÓN DIRECTA (@media print) -->
   <div id="direct-print-area" class="print-only hidden"></div>
+
+  <!-- =========================================================================
+       MODAL NUEVO: CONFIGURADOR DE LOGOTIPOS OFICIALES Y ENCABEZADO CENTRAL
+  ========================================================================== -->
+  <div id="header-config-modal" class="no-print fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+    <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="landmark" class="w-4 h-4 text-amber-400"></i>
+          Configuración de Encabezado Institucional y Logotipos Oficiales
+        </h3>
+        <button onclick="closeHeaderConfigModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+
+      <div class="p-5 space-y-5 max-h-[85vh] overflow-y-auto">
+        <p class="text-xs text-slate-600">
+          Sube las imágenes de tus logotipos desde tu galería y personaliza las líneas del texto central. Este membrete aparecerá automáticamente en la parte superior de tus <strong>Planeaciones</strong>, <strong>Escalas de Apreciación</strong> y <strong>Documentos APA 7</strong>.
+        </p>
+
+        <!-- Vista previa en vivo del encabezado -->
+        <div id="header-live-preview" class="border border-slate-300 rounded-xl p-3 bg-slate-50"></div>
+
+        <!-- Carga de Logotipo Izquierdo y Derecho -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+            <label class="block text-xs font-extrabold uppercase text-slate-700">Logo Izquierdo (Secretaría de Educación de Chiapas)</label>
+            <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'left')" class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-600 file:text-white hover:file:bg-sky-700" />
+          </div>
+          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+            <label class="block text-xs font-extrabold uppercase text-slate-700">Logo Derecho (ENLEF "Pedro Reynol Ozuna Henning")</label>
+            <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'right')" class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400" />
+          </div>
+        </div>
+
+        <!-- Edición del Texto Central entre los dos Logotipos -->
+        <div class="space-y-3">
+          <h4 class="text-xs font-extrabold uppercase text-slate-700">Texto Institucional del Centro (Editable Línea por Línea)</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+            <div class="sm:col-span-2">
+              <label class="block text-[11px] font-bold text-slate-500">Línea 1 (Dependencia Principal)</label>
+              <input type="text" id="hdr-line-1" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500">Línea 2 (Subsecretaría)</label>
+              <input type="text" id="hdr-line-2" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500">Línea 3 (Dirección / Nivel)</label>
+              <input type="text" id="hdr-line-3" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-semibold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500">Línea 4 (Institución Normalista)</label>
+              <input type="text" id="hdr-line-4" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold" />
+            </div>
+            <div>
+              <label class="block text-[11px] font-bold text-slate-500">Línea 5 (Lugar / Lema / Clave)</label>
+              <input type="text" id="hdr-line-5" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs" />
+            </div>
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200">
+          <button type="button" onclick="resetHeaderConfigToDefault()" class="text-xs font-semibold text-rose-600 hover:underline">
+            Restaurar Escudos y Texto por Defecto
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeHeaderConfigModal()" class="text-xs px-4 py-2 rounded-xl border border-slate-300 text-slate-600">Cerrar</button>
+            <button type="button" onclick="saveHeaderConfig()" class="text-xs font-bold px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow">Guardar Membrete Oficial</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <!-- MODAL: GESTIÓN DE MATERIAS ENLEF -->
   <div id="subjects-modal" class="no-print fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
@@ -648,7 +987,7 @@
     </div>
   </div>
 
-  <!-- MODAL: CARGA RÁPIDA DE LISTA DE ALUMNOS (30-40 ALUMNOS) -->
+  <!-- MODAL: CARGA RÁPIDA DE LISTA DE ALUMNOS -->
   <div id="bulk-students-modal" class="no-print fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
       <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
@@ -683,7 +1022,39 @@
   <script>
     const STORAGE_KEY = 'ENLEF_NEM_PRO_DB_V1';
 
-    // Catálogo de los 7 Ejes Articuladores Oficiales de la NEM
+    // Escudos SVG Institucionales por defecto (se reemplazan cuando el usuario sube su imagen PNG/JPG)
+    const DEFAULT_LEFT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90">
+        <rect width="220" height="90" rx="8" fill="#ffffff" stroke="#334155" stroke-width="2"/>
+        <circle cx="42" cy="45" r="28" fill="#7f1d1d"/>
+        <text x="42" y="50" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="13" fill="#ffffff">SEP</text>
+        <text x="82" y="34" font-family="Arial" font-weight="bold" font-size="11" fill="#0f172a">SECRETARÍA DE</text>
+        <text x="82" y="49" font-family="Arial" font-weight="bold" font-size="11" fill="#0f172a">EDUCACIÓN</text>
+        <text x="82" y="64" font-family="Arial" font-size="9" fill="#475569">GOBIERNO DE CHIAPAS</text>
+      </svg>
+    `);
+
+    const DEFAULT_RIGHT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90">
+        <rect width="220" height="90" rx="8" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
+        <circle cx="178" cy="45" r="28" fill="#1e3a8a"/>
+        <text x="178" y="50" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="12" fill="#f59e0b">ENLEF</text>
+        <text x="14" y="34" font-family="Arial" font-weight="bold" font-size="10" fill="#0f172a">ESCUELA NORMAL</text>
+        <text x="14" y="48" font-family="Arial" font-weight="bold" font-size="9" fill="#1e3a8a">"PEDRO REYNOL</text>
+        <text x="14" y="61" font-family="Arial" font-weight="bold" font-size="9" fill="#1e3a8a">OZUNA HENNING"</text>
+      </svg>
+    `);
+
+    const DEFAULT_HEADER_CONFIG = {
+      leftLogo: DEFAULT_LEFT_LOGO,
+      rightLogo: DEFAULT_RIGHT_LOGO,
+      line1: 'SECRETARÍA DE EDUCACIÓN',
+      line2: 'SUBSECRETARÍA DE EDUCACIÓN ESTATAL',
+      line3: 'DIRECCIÓN DE EDUCACIÓN SUPERIOR',
+      line4: 'ESCUELA NORMAL DE LICENCIATURA EN EDUCACIÓN FÍSICA "PEDRO REYNOL OZUNA HENNING"',
+      line5: 'TUXTLA GUTIÉRREZ, CHIAPAS'
+    };
+
     const EJES_ARTICULADORES = [
       { id: 1, nombre: '1. Inclusión' },
       { id: 2, nombre: '2. Pensamiento crítico' },
@@ -694,7 +1065,6 @@
       { id: 7, nombre: '7. Artes y experiencias estéticas' }
     ];
 
-    // Asignaturas oficiales solicitadas de la ENLEF "Pedro Reynol Ozuna Henning"
     const DEFAULT_SUBJECTS = [
       'Ética e identidad profesional',
       'Desarrollo socioemocional y aprendizaje',
@@ -707,8 +1077,124 @@
       'Taller deportivo'
     ];
 
-    // Datos iniciales con las 2 planeaciones maestras (Primaria 6 sesiones + Secundaria Circuito Inclusivo)
+    // Banco Curado de Juegos Recomendados bajo el marco de la Nueva Escuela Mexicana (NEM)
+    const INITIAL_NEM_GAMES = [
+      {
+        id: 'game-1',
+        titulo: 'El Engrane Cooperativo en Colchonetas (Cero Contacto Físico)',
+        fase: 'Fase 6 (1º, 2º y 3º Secundaria)',
+        tipo: 'Circuitos Masivos (Sin filas)',
+        pda: 'Pone en práctica los elementos de la condición física en actividades motrices y recreativas, fomentando el bienestar colectivo.',
+        evaluacion: 'Coordinación Segmentaria y Fuerza de Core: Pasa el aro pequeño con los pies en círculo decúbito dorsal sin usar las manos y cuidando su integridad física.',
+        faseInicial: '7 min • Movilidad articular dinámica en círculo general y trote continuo sin filas.',
+        faseDesarrollo: '38 min • En grupos de 10 sobre colchonetas, acostados boca arriba en círculo con pies al centro; sujetan un aro con los pies y lo pasan al compañero contiguo sin que toque el suelo y sin necesidad de asistencia manual docente.',
+        faseFinal: '5 min • Respiración diafragmática y reflexión sobre el esfuerzo compartido.',
+        estrategias: 'Circuito de acción motriz, Juegos cooperativos',
+        estilos: 'Asignación de tareas, Resolución de problemas',
+        materiales: 'Colchonetas, aros pequeños.'
+      },
+      {
+        id: 'game-2',
+        titulo: 'Las Camillas Espaciales y Espejo Activo',
+        fase: 'Fase 6 (1º, 2º y 3º Secundaria)',
+        tipo: 'Juegos cooperativos',
+        pda: 'Toma decisiones individuales y colectivas en situaciones de juego para superar retos motrices con material alternativo.',
+        evaluacion: 'Cooperación en Parejas y Control de Tensión: Transporta el cono aplicando fuerza simétrica con los palos de golf y realiza desplazamientos activos en espejo.',
+        faseInicial: '6 min • Desplazamientos laterales en espejo por parejas.',
+        faseDesarrollo: '39 min • En parejas frente a frente sostienen dos palos de golf de plástico presionando un cono en medio para transportarlo sin que caiga; las parejas en espera avanzan a los lados realizando pasos laterales o sentadillas.',
+        faseFinal: '5 min • Estiramientos de tren superior e inferior y coevaluación.',
+        estrategias: 'Juegos cooperativos, Trabajo por estaciones',
+        estilos: 'Descubrimiento guiado, Enseñanza recíproca',
+        materiales: 'Palos de golf de plástico, conos, aros pequeños.'
+      },
+      {
+        id: 'game-3',
+        titulo: 'El Cruce del Río Cooperativo',
+        fase: 'Fase 5 (5º y 6º Primaria)',
+        tipo: 'Juegos cooperativos',
+        pda: 'Diseña propuestas de actividades lúdicas a partir de sus capacidades para fortalecer la comunicación y cohesión grupal.',
+        evaluacion: 'Pensamiento Estratégico y Comunicación Táctica: Coordina el paso de aros con su equipo protegiendo la participación de todos los integrantes.',
+        faseInicial: '5 min • Juego de activación "Puentes y Rocas" en equipos mixtos.',
+        faseDesarrollo: '40 min • Equipos de 8 a 10 alumnos cruzan la cancha pisando únicamente dentro de 4 aros grandes; pasan el último aro vacío hacia adelante por encima de sus cabezas. Si alguien pisa fuera, retroceden un paso en equipo.',
+        faseFinal: '5 min • Diálogo grupal sobre el liderazgo inclusivo y acuerdos tomados.',
+        estrategias: 'Juegos cooperativos, Resolución de problemas',
+        estilos: 'Resolución de problemas, Libre exploración',
+        materiales: 'Aros grandes, conos delimitadores.'
+      },
+      {
+        id: 'game-4',
+        titulo: 'Gato (Tres en Línea) de Velocidad y Reacción',
+        fase: 'Fase 6 (1º, 2º y 3º Secundaria)',
+        tipo: 'Lúdicos de competencia / Modificados',
+        pda: 'Valora las capacidades y habilidades motrices propias y de sus compañeros en juegos de velocidad y toma de decisiones.',
+        evaluacion: 'Velocidad de Reacción y Agilidad Mental: Se desplaza a máxima velocidad y decide tácticamente la colocación del implemento bajo presión temporal.',
+        faseInicial: '5 min • Skipping reactivo al silbato y salidas rápidas desde distintas posiciones.',
+        faseDesarrollo: '40 min • Tablero de 3x3 con 9 aros pequeños a 10 metros de dos equipos de 5 alumnos. En relevos continuos colocan 3 conos por equipo buscando formar línea de 3; a partir del cuarto turno corren a reubicar sus propios conos.',
+        faseFinal: '5 min • Recuperación cardíaca caminando y estiramiento muscular.',
+        estrategias: 'Juegos de velocidad de reacción, Juegos modificados',
+        estilos: 'Asignación de tareas, Descubrimiento guiado',
+        materiales: '9 aros pequeños, 6 conos de dos colores o posiciones.'
+      },
+      {
+        id: 'game-5',
+        titulo: 'Lazarillos Auditivos y Campo de Minas Sensorial',
+        fase: 'Fase 4 (3º y 4º Primaria)',
+        tipo: 'Sensoriales e Inclusivos',
+        pda: 'Pone en práctica sus habilidades motrices en situaciones lúdicas, individuales y colectivas, para valorar la diversidad.',
+        evaluacion: 'Percepción Sensorial No Visual y Confianza Colectiva: Se orienta mediante estímulos auditivos y guía con responsabilidad a su compañero.',
+        faseInicial: '5 min • Reconocimiento espacial caminando con ojos semicerrados y acuerdos de cuidado mutuo.',
+        faseDesarrollo: '40 min • En parejas, un alumno con paliacate en los ojos es guiado únicamente mediante códigos sonoros (aplausos, silbidos o consignas verbales) para sortear aros y recolectar conos sin tocar obstáculos.',
+        faseFinal: '5 min • Círculo de empatía sobre las Barreras para el Aprendizaje y la Participación (BAP).',
+        estrategias: 'Juegos sensoriales, Juegos cooperativos',
+        estilos: 'Descubrimiento guiado, Enseñanza recíproca',
+        materiales: 'Paliacates, conos, aros, pelotas sonoras.'
+      },
+      {
+        id: 'game-6',
+        titulo: 'El Castillo Asediado (36 vs 4 en Simultáneo)',
+        fase: 'Fase 5 (5º y 6º Primaria)',
+        tipo: 'Lúdicos de competencia / Modificados',
+        pda: 'Adapta sus desempeños motores en juegos modificados de invasión y defensa asumiendo distintos roles.',
+        evaluacion: 'Coordinación Óculo-Manual y Transición de Roles: Ejecuta lanzamientos de precisión y bloqueos defensivos manteniendo flujo motor continuo.',
+        faseInicial: '5 min • Movilidad de hombro y pases dinámicos con pelotas de papel reciclado.',
+        faseDesarrollo: '40 min • 4 defensores con bastones/palos de plástico protegen una pirámide de botellas dentro de un círculo; el resto del grupo lanza pelotas de papel. Si una pelota es despejada, el atacante realiza 3 saltos de estrella antes de volver a lanzar. Rotación de defensores cada 2 minutos.',
+        faseFinal: '5 min • Estiramientos y análisis táctico de defensa y ataque.',
+        estrategias: 'Juegos modificados de cancha dividida e invasión',
+        estilos: 'Asignación de tareas, Resolución de problemas',
+        materiales: 'Bastones o palos de plástico, pelotas de papel encintado, botellas PET, conos.'
+      },
+      {
+        id: 'game-7',
+        titulo: 'Exploradores del Bosque Encantado (Motricidad Gruesa)',
+        fase: 'Fase 2 (Preescolar)',
+        tipo: 'Motores y Coordinación',
+        pda: 'Combina movimientos que implican el control, equilibrio y estabilidad del cuerpo al realizar acciones individuales y colectivas.',
+        evaluacion: 'Equilibrio Dinámico y Reptación: Alterna saltos, giros y desplazamientos cuadrúpedos reconociendo su esquema corporal.',
+        faseInicial: '5 min • Canción motriz de imitación de animales con cambios de velocidad.',
+        faseDesarrollo: '35 min • Recorrido simbólico por el patio: saltar sobre "charcos" (aros), caminar en equilibrio sobre "troncos" (cuerdas en el piso) y congelarse en postura de estatua al escuchar la clave musical.',
+        faseFinal: '10 min • Relajación "Semillitas que crecen" y verbalización de emociones.',
+        estrategias: 'Cuento motor, Juegos simbólicos',
+        estilos: 'Libre exploración, Descubrimiento guiado',
+        materiales: 'Aros, cuerdas, conos, bocina.'
+      },
+      {
+        id: 'game-8',
+        titulo: 'Fútbol de Botellas y Relevos de Canguros',
+        fase: 'Fase 3 (1º y 2º Primaria)',
+        tipo: 'Motores y Coordinación',
+        pda: 'Combina diversos patrones básicos de movimiento para actuar con base en las características de cada juego o situación.',
+        evaluacion: 'Control Óculo-Pedal y Respeto de Turnos: Conduce la pelota con ambos pies y coordina saltos sujetando el implemento.',
+        faseInicial: '5 min • Juego de persecución "Cazadores de colitas" con paliacates.',
+        faseDesarrollo: '40 min • Primera mitad conduciendo pelota con los pies en zig-zag para derribar su botella PET; segunda mitad transportando la pelota entre rodillas dando saltos de canguro en equipos mixtos.',
+        faseFinal: '5 min • Respiración guiada y valoración del juego limpio.',
+        estrategias: 'Juegos motores, Juegos de relevos',
+        estilos: 'Asignación de tareas, Mando directo',
+        materiales: 'Pelotas de vinil, botellas PET, paliacates, conos.'
+      }
+    ];
+
     const INITIAL_STATE = {
+      headerConfig: { ...DEFAULT_HEADER_CONFIG },
       subjects: [...DEFAULT_SUBJECTS],
       tasks: [
         {
@@ -718,6 +1204,7 @@
           date: '2026-10-20',
           priority: 'Alta',
           status: 'En Progreso',
+          attachmentName: 'Rubrica_Circuito_Inclusivo_ENLEF.pdf',
           instructions: 'Diseñar una propuesta de intervención en circuito por estaciones para grupos de 35 a 40 alumnos con escaso material (palos de golf de plástico, aros, conos y colchonetas), garantizando cero filas, seguridad física en colchonetas sin manipulación docente y participación equitativa.',
           outline: `1. INTRODUCCIÓN CONTEXTUALIZADA (ENLEF / NEM)\n- Contextualización de la práctica docente en nivel Secundaria (Fase 6).\n- Reto pedagógico: Alto tiempo de compromiso motor en grupos masivos (35-40 estudiantes) con recursos materiales limitados.\n\n2. JUSTIFICACIÓN PEDAGÓGICA Y NORMATIVA\n- Enfoque de inclusión y eliminación de Barreras para el Aprendizaje y la Participación (BAP).\n- Protocolo de integridad física y prevención legal: Trabajo de core y coordinación decúbito en colchonetas sin contacto físico docente-alumno.\n\n3. DESARROLLO DE LA PROPUESTA DIDÁCTICA (4 ESTACIONES)\n- Estación 1 (Colchonetas): "El Engrane Cooperativo" (fuerza abdominal e inclusión por roles).\n- Estación 2 (Palos de golf y conos): "Las Camillas Espaciales" (control de tensión y compañero activo en espejo).\n- Estación 3 (Aros grandes): "El Cruce del Río" (resolución de problemas y comunicación táctica).\n- Estación 4 (Aros pequeños y conos): "Gato de Velocidad" (velocidad de reacción y toma de decisiones).\n\n4. CONCLUSIONES Y REFLEXIÓN DOCENTE\n- Valoración de la cooperación sobre la competencia excluyente.\n\n5. REFERENCIAS EN FORMATO APA (7ma Edición)\n- Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria. SEP.\n- Sánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.`
         },
@@ -728,12 +1215,29 @@
           date: '2026-10-23',
           priority: 'Media',
           status: 'Pendiente',
+          attachmentName: '',
           instructions: 'Sistematizar los hallazgos del diagnóstico en la Escuela Primaria Francisco González Bocanegra para superar la división entre subgrupos mediante juegos cooperativos y sensoriales.',
           outline: ''
         }
       ],
       activePlanId: 'plan-bocanegra-1',
+      activeApaId: 'apa-doc-1',
       printMode: 'plan',
+      apaDocs: [
+        {
+          id: 'apa-doc-1',
+          title: 'Estrategias de Intervención Motriz Inclusiva y Prevención de Riesgos en la Educación Secundaria',
+          subject: 'Estrategias alternativas para la inclusión',
+          author: 'Docente en Formación ENLEF',
+          instructor: 'Catedrático(a) de la Asignatura',
+          date: '13 de octubre de 2026',
+          intro: 'La práctica pedagógica de la Educación Física en el nivel de Secundaria (Fase 6 de la Nueva Escuela Mexicana) plantea desafíos organizativos y didácticos significativos cuando se atienden grupos numerosos de entre 30 y 40 estudiantes con recursos materiales limitados.\nEl presente documento expone una propuesta de intervención estructurada bajo la modalidad de circuito de acción motriz rotativo, diseñada desde la perspectiva de la inclusión, el alto tiempo de compromiso motor y el resguardo absoluto de la integridad física y legal del estudiantado y del docente en formación.',
+          body: 'De acuerdo con los planteamientos de la Secretaría de Educación Pública (SEP, 2022), el Campo Formativo De lo Humano y lo Comunitario promueve que las y los adolescentes reconozcan sus potencialidades motrices, expresivas y de relación mediante experiencias colectivas que erradiquen cualquier forma de exclusión.\nPara eliminar las filas pasivas y los tiempos muertos en la cancha escolar, se implementaron cuatro estaciones simultáneas utilizando colchonetas, palos de golf de plástico, conos y aros. En la estación de colchonetas se sustituyeron las ejecuciones gimnásticas de riesgo cervical por la dinámica denominada El Engrane Cooperativo en posición decúbito dorsal, garantizando el fortalecimiento abdominal y la coordinación intersegmentaria sin requerir manipulación o contacto físico por parte del educador físico (Sánchez Bañuelos, 2003).\nAsimismo, a través de retos como El Cruce del Río y Las Camillas Espaciales, se minimizaron las Barreras para el Aprendizaje y la Participación (BAP), logrando que el éxito motriz dependiera de la comunicación táctica y la empatía grupal.',
+          conclusions: 'Se concluye que la organización mediante estaciones cooperativas y reglas de compañero activo en espejo transforma la escasez de material didáctico en una oportunidad pedagógica para consolidar la convivencia escolar, la autonomía motriz y la seguridad física en el patio.',
+          references: 'Castañer, M., & Camerino, O. (2006). Manifestaciones básicas de la motricidad. Universitat de Lleida.\nDevís, J., & Peiró, C. (2007). Nuevas perspectivas curriculares en Educación Física: la salud y los juegos modificados. INDE.\nSánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.\nSecretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. Dirección General de Desarrollo Curricular.'
+        }
+      ],
+      nemGames: [...INITIAL_NEM_GAMES],
       plans: [
         {
           id: 'plan-bocanegra-1',
@@ -884,10 +1388,13 @@
           return JSON.parse(JSON.stringify(INITIAL_STATE));
         }
         const parsed = JSON.parse(raw);
-        // Asegurar que las 9 materias obligatorias estén presentes
         DEFAULT_SUBJECTS.forEach(sub => {
           if (!parsed.subjects.includes(sub)) parsed.subjects.push(sub);
         });
+        if (!parsed.headerConfig) parsed.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+        if (!parsed.apaDocs || parsed.apaDocs.length === 0) parsed.apaDocs = JSON.parse(JSON.stringify(INITIAL_STATE.apaDocs));
+        if (!parsed.activeApaId) parsed.activeApaId = parsed.apaDocs[0].id;
+        if (!parsed.nemGames || parsed.nemGames.length === 0) parsed.nemGames = JSON.parse(JSON.stringify(INITIAL_NEM_GAMES));
         return parsed;
       } catch (e) {
         console.error('Error cargando estado local:', e);
@@ -901,7 +1408,6 @@
       updateBadges();
     }
 
-    // Respaldo asíncrono secundario en IndexedDB para cumplir arquitectura PWA robusta
     function syncToIndexedDB(data) {
       if (!('indexedDB' in window)) return;
       const req = indexedDB.open('ENLEF_NEM_INDEXEDDB', 1);
@@ -922,23 +1428,23 @@
       const toast = document.getElementById('toast-notification');
       document.getElementById('toast-message').textContent = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 2800);
+      setTimeout(() => toast.classList.add('hidden'), 3000);
     }
 
     // =========================================================================
-    // NAVEGACIÓN ENTRE LOS 4 MÓDULOS
+    // NAVEGACIÓN ENTRE LOS 6 MÓDULOS
     // =========================================================================
     function switchTab(tabName) {
-      const modules = ['tareas', 'planeaciones', 'evaluacion', 'exportar'];
+      const modules = ['tareas', 'planeaciones', 'evaluacion', 'apa7', 'juegos', 'exportar'];
       modules.forEach(m => {
         const sec = document.getElementById(`module-${m}`);
         const btn = document.getElementById(`tab-btn-${m}`);
         if (m === tabName) {
           sec.classList.remove('hidden');
-          btn.className = 'nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow';
+          btn.className = 'nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow';
         } else {
           sec.classList.add('hidden');
-          btn.className = 'nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700';
+          btn.className = 'nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700';
         }
       });
 
@@ -947,6 +1453,11 @@
         populatePlanForm(getActivePlan());
       } else if (tabName === 'evaluacion') {
         renderEvaluationModule();
+      } else if (tabName === 'apa7') {
+        renderApaSelector();
+        populateApaForm(getActiveApaDoc());
+      } else if (tabName === 'juegos') {
+        renderRecommendedGames();
       } else if (tabName === 'exportar') {
         renderPrintPreview();
       }
@@ -960,19 +1471,224 @@
     }
 
     // =========================================================================
+    // CONFIGURADOR DE MEMBRETE OFICIAL Y LOGOTIPOS (IZQUIERDO, CENTRAL Y DERECHO)
+    // =========================================================================
+    function buildInstitutionalHeaderHTML() {
+      const cfg = appState.headerConfig || DEFAULT_HEADER_CONFIG;
+      return `
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; border-bottom: 2px solid #000000; padding-bottom: 6px;">
+          <tr>
+            <td style="width: 22%; text-align: left; vertical-align: middle; border: none !important; padding: 4px;">
+              <img src="${cfg.leftLogo}" alt="Logo Secretaría de Educación" style="max-height: 68px; max-width: 165px; object-fit: contain;" />
+            </td>
+            <td style="width: 56%; text-align: center; vertical-align: middle; border: none !important; padding: 4px; line-height: 1.25;">
+              <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase;">${escapeHtml(cfg.line1)}</div>
+              <div style="font-size: 9pt; font-weight: 700; text-transform: uppercase;">${escapeHtml(cfg.line2)}</div>
+              <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase;">${escapeHtml(cfg.line3)}</div>
+              <div style="font-size: 9pt; font-weight: 800; text-transform: uppercase; margin-top: 2px;">${escapeHtml(cfg.line4)}</div>
+              <div style="font-size: 8pt; font-weight: 600;">${escapeHtml(cfg.line5)}</div>
+            </td>
+            <td style="width: 22%; text-align: right; vertical-align: middle; border: none !important; padding: 4px;">
+              <img src="${cfg.rightLogo}" alt="Logo ENLEF" style="max-height: 68px; max-width: 165px; object-fit: contain; margin-left: auto;" />
+            </td>
+          </tr>
+        </table>
+      `;
+    }
+
+    function openHeaderConfigModal() {
+      const cfg = appState.headerConfig || DEFAULT_HEADER_CONFIG;
+      document.getElementById('hdr-line-1').value = cfg.line1 || '';
+      document.getElementById('hdr-line-2').value = cfg.line2 || '';
+      document.getElementById('hdr-line-3').value = cfg.line3 || '';
+      document.getElementById('hdr-line-4').value = cfg.line4 || '';
+      document.getElementById('hdr-line-5').value = cfg.line5 || '';
+      updateHeaderLivePreview();
+      const modal = document.getElementById('header-config-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeHeaderConfigModal() {
+      const modal = document.getElementById('header-config-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function handleLogoUpload(event, side) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        if (!appState.headerConfig) appState.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+        if (side === 'left') {
+          appState.headerConfig.leftLogo = e.target.result;
+        } else {
+          appState.headerConfig.rightLogo = e.target.result;
+        }
+        updateHeaderLivePreview();
+        showToast(`Logotipo ${side === 'left' ? 'izquierdo (Secretaría)' : 'derecho (ENLEF)'} cargado`);
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function updateHeaderLivePreview() {
+      if (!appState.headerConfig) appState.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+      appState.headerConfig.line1 = document.getElementById('hdr-line-1').value;
+      appState.headerConfig.line2 = document.getElementById('hdr-line-2').value;
+      appState.headerConfig.line3 = document.getElementById('hdr-line-3').value;
+      appState.headerConfig.line4 = document.getElementById('hdr-line-4').value;
+      appState.headerConfig.line5 = document.getElementById('hdr-line-5').value;
+      document.getElementById('header-live-preview').innerHTML = buildInstitutionalHeaderHTML();
+    }
+
+    function saveHeaderConfig() {
+      updateHeaderLivePreview();
+      persistState();
+      renderPrintPreview();
+      closeHeaderConfigModal();
+      showToast('Membrete y logotipos guardados para todos tus documentos');
+    }
+
+    function resetHeaderConfigToDefault() {
+      appState.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+      persistState();
+      openHeaderConfigModal();
+      renderPrintPreview();
+      showToast('Membrete restaurado a los valores por defecto');
+    }
+
+    // =========================================================================
+    // DETECTOR INTELIGENTE DE ASIGNATURAS Y ARCHIVOS ADJUNTOS (MÓDULO 1)
+    // =========================================================================
+    function detectSubjectFromText(text) {
+      const lower = (text || '').toLowerCase();
+      const rules = [
+        { subject: 'La actividad motriz en el medio acuático', keywords: ['acuátic', 'acuatic', 'natación', 'natacion', 'alberca', 'flotación', 'propulsión', 'agua', 'nado', 'salvamento'] },
+        { subject: 'Estrategias alternativas para la inclusión', keywords: ['inclusión', 'inclusion', 'inclusiv', 'bap', 'discapacidad', 'barreras', 'adaptación', 'equidad', 'diversidad', 'ajustes razonables', 'sensorial'] },
+        { subject: 'Inglés: producción de textos académicos en lengua extranjera', keywords: ['inglés', 'ingles', 'english', 'abstract', 'foreign', 'lengua extranjera', 'translation', 'essay', 'physical education'] },
+        { subject: 'Promoción y prevención de la salud', keywords: ['salud', 'prevención', 'prevencion', 'nutrición', 'obesidad', 'frecuencia cardíaca', 'higiene', 'sedentarismo', 'bienestar físico', 'signos vitales'] },
+        { subject: 'Investigación e innovación de la práctica docente', keywords: ['investigación', 'investigacion', 'innovación', 'diagnóstico', 'diagnostico', 'jornada', 'diario de campo', 'observación', 'práctica docente', 'metodología'] },
+        { subject: 'Ética e identidad profesional', keywords: ['ética', 'etica', 'identidad', 'deontología', 'valores', 'profesional', 'normativa', 'responsabilidad docente', 'integridad'] },
+        { subject: 'Desarrollo socioemocional y aprendizaje', keywords: ['socioemocional', 'emociones', 'empatía', 'empatia', 'convivencia', 'subgrupos', 'autorregulación', 'afectivo'] },
+        { subject: 'Gestión del centro educativo', keywords: ['gestión', 'gestion', 'centro educativo', 'consejo técnico', 'cte', 'administración', 'directivo', 'infraestructura', 'organización escolar'] },
+        { subject: 'Taller deportivo', keywords: ['taller deportivo', 'deporte', 'torneo', 'iniciación deportiva', 'fútbol', 'baloncesto', 'voleibol', 'atletismo', 'arbitraje', 'reglamento'] }
+      ];
+
+      let bestMatch = null;
+      let maxHits = 0;
+
+      rules.forEach(r => {
+        let hits = 0;
+        r.keywords.forEach(k => {
+          if (lower.includes(k)) hits++;
+        });
+        if (hits > maxHits && appState.subjects.includes(r.subject)) {
+          maxHits = hits;
+          bestMatch = r.subject;
+        }
+      });
+
+      return bestMatch;
+    }
+
+    function previewSubjectDetection(text) {
+      const detected = detectSubjectFromText(text);
+      if (detected) {
+        document.getElementById('task-subject').value = detected;
+        const bar = document.getElementById('attachment-status-bar');
+        bar.classList.remove('hidden');
+        document.getElementById('attachment-status-text').innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i> Asignatura detectada automáticamente por contexto:`;
+        document.getElementById('detected-subject-pill').textContent = detected;
+        lucide.createIcons();
+      }
+    }
+
+    async function handleSmartDocumentUpload(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      document.getElementById('task-attachment-name').value = file.name;
+      const cleanFileName = file.name.replace(/\.[^/.]+$/, '').replace(/[_-]/g, ' ');
+      let extractedText = '';
+
+      try {
+        if (file.name.toLowerCase().endsWith('.pdf') && window.pdfjsLib) {
+          pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+          const arrayBuffer = await file.arrayBuffer();
+          const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+          let pagesText = [];
+          const maxPages = Math.min(pdf.numPages, 5);
+          for (let i = 1; i <= maxPages; i++) {
+            const page = await pdf.getPage(i);
+            const content = await page.getTextContent();
+            pagesText.push(content.items.map(item => item.str).join(' '));
+          }
+          extractedText = pagesText.join('\n');
+        } else if (file.type.startsWith('text/') || /\.(txt|md|csv|json|html)$/i.test(file.name)) {
+          extractedText = await file.text();
+        }
+      } catch (err) {
+        console.warn('Lectura directa de archivo:', err);
+      }
+
+      const combinedAnalysisText = `${cleanFileName}\n${extractedText}`.trim();
+      const detectedSubject = detectSubjectFromText(combinedAnalysisText) || document.getElementById('task-subject').value;
+
+      document.getElementById('task-subject').value = detectedSubject;
+      document.getElementById('task-title').value = cleanFileName.charAt(0).toUpperCase() + cleanFileName.slice(1);
+      document.getElementById('task-instructions').value = extractedText
+        ? extractedText.substring(0, 1200)
+        : `Documento adjunto: "${file.name}". Desarrollar producto académico y propuesta pedagógica cumpliendo los criterios de evaluación de la asignatura ${detectedSubject}.`;
+
+      if (/urgente|examen|final|jornada|rúbrica|rubrica/i.test(combinedAnalysisText)) {
+        document.getElementById('task-priority').value = 'Alta';
+      }
+
+      const bar = document.getElementById('attachment-status-bar');
+      bar.classList.remove('hidden');
+      document.getElementById('attachment-status-text').innerHTML = `📎 Archivo analizado: <strong>${escapeHtml(file.name)}</strong>`;
+      document.getElementById('detected-subject-pill').textContent = `Materia: ${detectedSubject}`;
+
+      generateAcademicOutlineFromForm();
+      // Guardar automáticamente en el tablero de control de entregas
+      saveTask(new Event('submit'));
+      showToast(`Rúbrica "${file.name}" clasificada en ${detectedSubject}`);
+    }
+
+    function autoDetectAndSaveFromInstructions() {
+      const instructions = document.getElementById('task-instructions').value.trim();
+      if (!instructions) {
+        showToast('Primero pega las instrucciones o sube un archivo');
+        return;
+      }
+      const detected = detectSubjectFromText(instructions);
+      if (detected) document.getElementById('task-subject').value = detected;
+      if (!document.getElementById('task-title').value.trim()) {
+        const firstLine = instructions.split(/[\.\n]/)[0].substring(0, 65);
+        document.getElementById('task-title').value = firstLine || 'Entrega Académica ENLEF';
+      }
+      generateAcademicOutlineFromForm();
+      saveTask(new Event('submit'));
+    }
+
+    // =========================================================================
     // MÓDULO 1: GESTOR DE TAREAS Y ASISTENTE ESTRUCTURADOR APA
     // =========================================================================
     function populateSubjectsSelects() {
       const taskSelect = document.getElementById('task-subject');
       const filterSelect = document.getElementById('filter-task-subject');
+      const apaSelect = document.getElementById('apa-subject');
       const currentFilter = filterSelect.value || 'ALL';
 
-      taskSelect.innerHTML = appState.subjects
+      const optionsHtml = appState.subjects
         .map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`)
         .join('');
 
-      filterSelect.innerHTML = `<option value="ALL">Todas las asignaturas (${appState.subjects.length})</option>` +
-        appState.subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+      taskSelect.innerHTML = optionsHtml;
+      if (apaSelect) apaSelect.innerHTML = optionsHtml;
+
+      filterSelect.innerHTML = `<option value="ALL">Todas las asignaturas (${appState.subjects.length})</option>` + optionsHtml;
       filterSelect.value = currentFilter;
       updateBadges();
     }
@@ -982,7 +1698,6 @@
       const title = document.getElementById('task-title').value.trim() || 'Propuesta Académica de Intervención en Educación Física';
       const instructions = document.getElementById('task-instructions').value.trim() || 'Análisis teórico-práctico aplicado al contexto escolar.';
 
-      // Enfoque específico según la asignatura de la ENLEF seleccionada
       const subjectApproaches = {
         'Ética e identidad profesional': 'el compromiso deontológico del educador físico, el cuidado de la integridad del alumnado y la construcción de la identidad docente normalista',
         'Desarrollo socioemocional y aprendizaje': 'la regulación emocional, la empatía motriz, la superación de subgrupos y la convivencia escolar pacífica desde la corporeidad',
@@ -1003,27 +1718,24 @@ BOSQUEJO ACADÉMICO ESTRUCTURADO - ENLEF "PEDRO REYNOL OZUNA HENNING"
 ASIGNATURA: ${subject.toUpperCase()}
 TÍTULO DEL TRABAJO: ${title}
 
-1. INTRODUCCIÓN
+1. PORTADA ESTUDIANTIL APA 7ma EDICIÓN
+   - Membrete oficial con logotipos de Secretaría de Educación y ENLEF.
+   - Título centrado en negritas, Autor, Asignatura, Docente y Fecha.
+
+2. INTRODUCCIÓN
    - Presentación del tema y su relevancia en la formación inicial del Licenciado en Educación Física.
    - Contextualización dentro del marco de la Nueva Escuela Mexicana (Campo Formativo: De lo Humano y lo Comunitario).
    - Propósito central derivado de la consigna: "${instructions}".
 
-2. JUSTIFICACIÓN PEDAGÓGICA Y NORMATIVA
+3. JUSTIFICACIÓN PEDAGÓGICA Y DESARROLLO (FORMATO APA 7)
    - Fundamentación teórica centrada en ${specificFocus}.
    - Vinculación con los Ejes Articuladores (Inclusión, Vida Saludable, Pensamiento Crítico e Igualdad de Género).
-   - Impacto esperado en el tiempo de compromiso motor y la convivencia del estudiantado.
-
-3. DESARROLLO DE LA PROPUESTA / ANÁLISIS CRÍTICO
-   3.1. Diagnóstico y planteamiento del problema práctico en patio/aula.
-   3.2. Diseño metodológico o secuencia de actividades (Fase Inicial, Desarrollo y Final).
-   3.3. Estrategias didácticas y estilos de enseñanza aplicados (Descubrimiento guiado, Resolución de problemas, Juegos cooperativos).
-   3.4. Adecuaciones curriculares, seguridad física y recursos materiales (convencionales o reciclados).
+   - Propuesta metodológica e impacto en el tiempo de compromiso motor.
 
 4. CONCLUSIONES Y REFLEXIÓN DE LA PRÁCTICA DOCENTE
    - Síntesis de los aprendizajes logrados y retos detectados durante la intervención.
-   - Proyección de mejora para futuras jornadas de práctica profesional.
 
-5. REFERENCIAS BIBLIOGRÁFICAS SUGERIDAS (FORMATO APA 7ma EDICIÓN)
+5. REFERENCIAS BIBLIOGRÁFICAS (SANGRÍA FRANCESA 1.27 CM)
    - Castañer, M., & Camerino, O. (2006). Manifestaciones básicas de la motricidad. Universitat de Lleida.
    - Devís, J., & Peiró, C. (2007). Nuevas perspectivas curriculares en Educación Física: la salud y los juegos modificados. INDE.
    - Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. Dirección General de Desarrollo Curricular.`;
@@ -1032,7 +1744,7 @@ TÍTULO DEL TRABAJO: ${title}
       const textarea = document.getElementById('task-outline-text');
       textarea.value = outline;
       box.classList.remove('hidden');
-      showToast('Estructura académica APA generada');
+      showToast('Estructura académica APA 7 generada');
     }
 
     function copyOutlineText() {
@@ -1042,19 +1754,22 @@ TÍTULO DEL TRABAJO: ${title}
     }
 
     function saveTask(e) {
-      e.preventDefault();
+      if (e && e.preventDefault) e.preventDefault();
       const id = document.getElementById('task-id').value;
       const subject = document.getElementById('task-subject').value;
       const title = document.getElementById('task-title').value.trim();
-      const date = document.getElementById('task-date').value;
+      const date = document.getElementById('task-date').value || new Date().toISOString().split('T')[0];
       const priority = document.getElementById('task-priority').value;
       const instructions = document.getElementById('task-instructions').value.trim();
       const outline = document.getElementById('task-outline-text').value.trim();
+      const attachmentName = document.getElementById('task-attachment-name').value || '';
+
+      if (!title || !instructions) return;
 
       if (id) {
         const idx = appState.tasks.findIndex(t => t.id === id);
         if (idx > -1) {
-          appState.tasks[idx] = { ...appState.tasks[idx], subject, title, date, priority, instructions, outline };
+          appState.tasks[idx] = { ...appState.tasks[idx], subject, title, date, priority, instructions, outline, attachmentName };
         }
       } else {
         appState.tasks.unshift({
@@ -1064,6 +1779,7 @@ TÍTULO DEL TRABAJO: ${title}
           date,
           priority,
           status: 'Pendiente',
+          attachmentName,
           instructions,
           outline
         });
@@ -1072,14 +1788,16 @@ TÍTULO DEL TRABAJO: ${title}
       persistState();
       resetTaskForm();
       renderTasks();
-      showToast('Tarea guardada en tu agenda ENLEF');
+      showToast('Tarea guardada en el Tablero de Control');
     }
 
     function resetTaskForm() {
       document.getElementById('task-form').reset();
       document.getElementById('task-id').value = '';
+      document.getElementById('task-attachment-name').value = '';
       document.getElementById('task-outline-text').value = '';
       document.getElementById('task-outline-preview-box').classList.add('hidden');
+      document.getElementById('attachment-status-bar').classList.add('hidden');
       document.getElementById('task-submit-label').textContent = 'Guardar Tarea';
       document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
     }
@@ -1126,30 +1844,40 @@ TÍTULO DEL TRABAJO: ${title}
             <h4 class="font-bold text-slate-900 text-sm ${t.status === 'Completada' ? 'line-through text-slate-500' : ''}">
               ${escapeHtml(t.title)}
             </h4>
+            ${t.attachmentName ? `
+              <div class="mt-1 inline-flex items-center gap-1 text-[11px] font-semibold text-amber-800 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded">
+                <i data-lucide="paperclip" class="w-3 h-3"></i> ${escapeHtml(t.attachmentName)}
+              </div>
+            ` : ''}
             <p class="text-xs text-slate-600 mt-1.5 line-clamp-3">${escapeHtml(t.instructions)}</p>
 
             ${t.outline ? `
               <details class="mt-3 bg-slate-900 text-slate-100 rounded-xl p-2.5 text-xs">
-                <summary class="cursor-pointer font-semibold text-amber-400">Ver Desglose Académico APA</summary>
+                <summary class="cursor-pointer font-semibold text-amber-400">Ver Desglose Académico APA 7</summary>
                 <pre class="mt-2 whitespace-pre-wrap font-mono text-[11px] text-slate-200 max-h-48 overflow-y-auto">${escapeHtml(t.outline)}</pre>
               </details>
             ` : ''}
           </div>
 
-          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-            <select onchange="changeTaskStatus('${t.id}', this.value)" class="text-xs font-semibold rounded-lg border border-slate-300 px-2 py-1 bg-slate-50">
-              <option value="Pendiente" ${t.status === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
-              <option value="En Progreso" ${t.status === 'En Progreso' ? 'selected' : ''}>⚡ En Progreso</option>
-              <option value="Completada" ${t.status === 'Completada' ? 'selected' : ''}>✅ Completada</option>
-            </select>
+          <div class="pt-3 border-t border-slate-100 space-y-2">
+            <button type="button" onclick="openTaskInApaCreator('${t.id}')" class="w-full bg-slate-900 hover:bg-slate-800 text-amber-300 font-bold text-xs py-2 px-3 rounded-xl flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="book-marked" class="w-3.5 h-3.5"></i> Redactar / Exportar en Formato APA 7
+            </button>
+            <div class="flex items-center justify-between gap-2">
+              <select onchange="changeTaskStatus('${t.id}', this.value)" class="text-xs font-semibold rounded-lg border border-slate-300 px-2 py-1 bg-slate-50">
+                <option value="Pendiente" ${t.status === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+                <option value="En Progreso" ${t.status === 'En Progreso' ? 'selected' : ''}>⚡ En Progreso</option>
+                <option value="Completada" ${t.status === 'Completada' ? 'selected' : ''}>✅ Completada</option>
+              </select>
 
-            <div class="flex items-center gap-1">
-              <button onclick="editTask('${t.id}')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100" title="Editar / Generar Estructura">
-                <i data-lucide="edit-3" class="w-4 h-4"></i>
-              </button>
-              <button onclick="deleteTask('${t.id}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50" title="Eliminar">
-                <i data-lucide="trash-2" class="w-4 h-4"></i>
-              </button>
+              <div class="flex items-center gap-1">
+                <button onclick="editTask('${t.id}')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100" title="Editar">
+                  <i data-lucide="edit-3" class="w-4 h-4"></i>
+                </button>
+                <button onclick="deleteTask('${t.id}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50" title="Eliminar">
+                  <i data-lucide="trash-2" class="w-4 h-4"></i>
+                </button>
+              </div>
             </div>
           </div>
         </div>
@@ -1177,6 +1905,7 @@ TÍTULO DEL TRABAJO: ${title}
       document.getElementById('task-date').value = task.date;
       document.getElementById('task-priority').value = task.priority;
       document.getElementById('task-instructions').value = task.instructions;
+      document.getElementById('task-attachment-name').value = task.attachmentName || '';
       document.getElementById('task-submit-label').textContent = 'Actualizar Tarea';
 
       if (task.outline) {
@@ -1195,7 +1924,6 @@ TÍTULO DEL TRABAJO: ${title}
       showToast('Tarea eliminada');
     }
 
-    // Modal de asignaturas
     function openSubjectsModal() {
       renderSubjectsModalList();
       const modal = document.getElementById('subjects-modal');
@@ -1239,6 +1967,442 @@ TÍTULO DEL TRABAJO: ${title}
       persistState();
       populateSubjectsSelects();
       renderSubjectsModalList();
+    }
+
+    // =========================================================================
+    // MÓDULO 4 (NUEVO): CREADOR DE DOCUMENTOS EN FORMATO APA 7ma EDICIÓN
+    // =========================================================================
+    function getActiveApaDoc() {
+      let doc = appState.apaDocs.find(d => d.id === appState.activeApaId);
+      if (!doc) {
+        doc = appState.apaDocs[0];
+        appState.activeApaId = doc.id;
+      }
+      return doc;
+    }
+
+    function renderApaSelector() {
+      const sel = document.getElementById('apa-doc-selector');
+      if (!sel) return;
+      sel.innerHTML = appState.apaDocs.map(d => `
+        <option value="${d.id}" ${d.id === appState.activeApaId ? 'selected' : ''}>
+          ${escapeHtml(d.title.substring(0, 48))} (${escapeHtml(d.subject.substring(0, 25))}...)
+        </option>
+      `).join('');
+    }
+
+    function loadSelectedApaDoc(docId) {
+      appState.activeApaId = docId;
+      persistState();
+      populateApaForm(getActiveApaDoc());
+      showToast('Documento APA 7 cargado');
+    }
+
+    function populateApaForm(doc) {
+      populateSubjectsSelects();
+      document.getElementById('apa-title').value = doc.title || '';
+      document.getElementById('apa-subject').value = doc.subject || appState.subjects[0];
+      document.getElementById('apa-author').value = doc.author || 'Docente en Formación ENLEF';
+      document.getElementById('apa-instructor').value = doc.instructor || '';
+      document.getElementById('apa-date').value = doc.date || '13 de octubre de 2026';
+      document.getElementById('apa-intro').value = doc.intro || '';
+      document.getElementById('apa-body').value = doc.body || '';
+      document.getElementById('apa-conclusions').value = doc.conclusions || '';
+      document.getElementById('apa-references').value = doc.references || '';
+    }
+
+    function saveCurrentApaDoc(e) {
+      if (e && e.preventDefault) e.preventDefault();
+      const doc = getActiveApaDoc();
+      doc.title = document.getElementById('apa-title').value.trim();
+      doc.subject = document.getElementById('apa-subject').value;
+      doc.author = document.getElementById('apa-author').value.trim();
+      doc.instructor = document.getElementById('apa-instructor').value.trim();
+      doc.date = document.getElementById('apa-date').value.trim();
+      doc.intro = document.getElementById('apa-intro').value.trim();
+      doc.body = document.getElementById('apa-body').value.trim();
+      doc.conclusions = document.getElementById('apa-conclusions').value.trim();
+      doc.references = document.getElementById('apa-references').value.trim();
+
+      persistState();
+      renderApaSelector();
+      showToast('Documento APA 7 guardado');
+    }
+
+    function createNewApaDoc() {
+      const newId = 'apa-' + Date.now();
+      const newDoc = {
+        id: newId,
+        title: 'Título del Trabajo Académico en Formato APA 7',
+        subject: appState.subjects[0],
+        author: 'Docente en Formación ENLEF',
+        instructor: 'Catedrático(a) Titular',
+        date: new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
+        intro: 'En el presente trabajo académico se analiza la importancia de la intervención pedagógica en la Licenciatura en Educación Física desde el marco de la Nueva Escuela Mexicana (SEP, 2022).',
+        body: 'El desarrollo de las capacidades perceptivo-motrices, socioemocionales y físico-motrices requiere una planificación fundamentada que atienda la diversidad del alumnado y promueva estilos de vida saludables.',
+        conclusions: 'Se concluye que la articulación entre la teoría pedagógica y la práctica en el patio escolar fortalece la identidad profesional del educador físico en formación.',
+        references: 'Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. SEP.'
+      };
+      appState.apaDocs.unshift(newDoc);
+      appState.activeApaId = newId;
+      persistState();
+      renderApaSelector();
+      populateApaForm(newDoc);
+      showToast('Nuevo documento APA 7 creado');
+    }
+
+    function openTaskInApaCreator(taskId) {
+      const task = appState.tasks.find(t => t.id === taskId);
+      if (!task) return;
+      const newId = 'apa-from-' + task.id;
+      let existing = appState.apaDocs.find(d => d.id === newId);
+      if (!existing) {
+        existing = {
+          id: newId,
+          title: task.title,
+          subject: task.subject,
+          author: 'Docente en Formación ENLEF',
+          instructor: 'Docente Titular de la Asignatura',
+          date: task.date,
+          intro: `El presente trabajo aborda la consigna académica "${task.title}" correspondiente a la asignatura ${task.subject} en la Escuela Normal de Licenciatura en Educación Física "Pedro Reynol Ozuna Henning".\nEl propósito central consiste en dar respuesta fundamentada a los siguientes lineamientos: ${task.instructions}`,
+          body: `Desde la perspectiva de la Nueva Escuela Mexicana (SEP, 2022), la práctica de la Educación Física trasciende el enfoque meramente deportivista para situarse en el Campo Formativo De lo Humano y lo Comunitario.\nEn concordancia con Sánchez Bañuelos (2003), el diseño de situaciones motrices debe priorizar el tiempo de compromiso motor, la inclusión de todo el estudiantado y la seguridad física mediante estrategias cooperativas y estilos de enseñanza participativos.`,
+          conclusions: `El análisis desarrollado permite afirmar que la formación docente en la ENLEF demanda articular el dominio teórico-metodológico con la sensibilidad pedagógica ante las Barreras para el Aprendizaje y la Participación (BAP).`,
+          references: `Castañer, M., & Camerino, O. (2006). Manifestaciones básicas de la motricidad. Universitat de Lleida.\nDevís, J., & Peiró, C. (2007). Nuevas perspectivas curriculares en Educación Física: la salud y los juegos modificados. INDE.\nSánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.\nSecretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. SEP.`
+        };
+        appState.apaDocs.unshift(existing);
+      }
+      appState.activeApaId = existing.id;
+      persistState();
+      switchTab('apa7');
+      showToast('Tarea vinculada y estructurada en Formato APA 7');
+    }
+
+    function sendFormTaskToApaEditor() {
+      const title = document.getElementById('task-title').value.trim() || 'Trabajo Académico ENLEF';
+      const subject = document.getElementById('task-subject').value;
+      const instructions = document.getElementById('task-instructions').value.trim() || 'Desarrollo de propuesta pedagógica.';
+      const tempId = 'apa-' + Date.now();
+      const newDoc = {
+        id: tempId,
+        title,
+        subject,
+        author: 'Docente en Formación ENLEF',
+        instructor: 'Docente Titular',
+        date: new Date().toLocaleDateString('es-MX', { day: 'numeric', month: 'long', year: 'numeric' }),
+        intro: `En este documento se desarrolla el tema "${title}" para la asignatura ${subject}.\nLa directriz académica establecida plantea: ${instructions}`,
+        body: `Bajo el marco curricular de la Nueva Escuela Mexicana (SEP, 2022), la intervención del educador físico promueve el desarrollo integral de la corporeidad, la motricidad y la convivencia escolar pacífica e inclusiva.`,
+        conclusions: `La aplicación sistemática de estos principios fortalece las competencias profesionales del docente en formación de la ENLEF "Pedro Reynol Ozuna Henning".`,
+        references: `Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. SEP.\nSánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.`
+      };
+      appState.apaDocs.unshift(newDoc);
+      appState.activeApaId = tempId;
+      persistState();
+      switchTab('apa7');
+    }
+
+    function autoFillApaContentWithAI() {
+      const subject = document.getElementById('apa-subject').value;
+      const title = document.getElementById('apa-title').value.trim() || `Análisis Pedagógico en ${subject}`;
+      document.getElementById('apa-title').value = title;
+      document.getElementById('apa-intro').value = `El presente documento académico tiene como propósito analizar "${title}" dentro de la asignatura ${subject}, perteneciente al plan de estudios de la Escuela Normal de Licenciatura en Educación Física "Pedro Reynol Ozuna Henning".\nSe parte del enfoque humanista y comunitario de la Nueva Escuela Mexicana (SEP, 2022), reconociendo a la corporeidad y la motricidad como ejes fundamentales para la formación integral de niñas, niños y adolescentes.`;
+      document.getElementById('apa-body').value = `En el contexto actual de la Educación Física escolar, resulta indispensable diseñar ambientes de aprendizaje seguros, incluyentes y con alto compromiso motor (Sánchez Bañuelos, 2003). La articulación de los Procesos de Desarrollo de Aprendizaje (PDA) con los siete Ejes Articuladores permite atender la diversidad del grupo y superar las Barreras para el Aprendizaje y la Participación (BAP).\nPor su parte, Devís y Peiró (2007) destacan que el uso de juegos modificados, circuitos cooperativos y retos sensoriales favorece la toma de decisiones tácticas, la autorregulación socioemocional y la coeducación en el patio escolar.`;
+      document.getElementById('apa-conclusions').value = `Como conclusión, la sistematización reflexiva de la práctica docente en la asignatura ${subject} consolida la identidad ética y profesional del futuro Licenciado en Educación Física, garantizando intervenciones pertinentes para el contexto educativo de Chiapas.`;
+      if (!document.getElementById('apa-references').value.trim()) {
+        document.getElementById('apa-references').value = `Castañer, M., & Camerino, O. (2006). Manifestaciones básicas de la motricidad. Universitat de Lleida.\nDevís, J., & Peiró, C. (2007). Nuevas perspectivas curriculares en Educación Física: la salud y los juegos modificados. INDE.\nSánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.\nSecretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. SEP.`;
+      }
+      saveCurrentApaDoc();
+      showToast('Redacción base APA 7 generada');
+    }
+
+    function addFormattedApaReference() {
+      const author = document.getElementById('ref-author').value.trim();
+      const year = document.getElementById('ref-year').value.trim() || 's.f.';
+      const title = document.getElementById('ref-title').value.trim();
+      const source = document.getElementById('ref-source').value.trim();
+      if (!author || !title) {
+        showToast('Ingresa al menos Autor y Título de la obra');
+        return;
+      }
+      const formatted = `${author} (${year}). ${title}. ${source || 'Editorial académica'}.`;
+      const refBox = document.getElementById('apa-references');
+      refBox.value = (refBox.value.trim() ? refBox.value.trim() + '\n' : '') + formatted;
+      document.getElementById('ref-author').value = '';
+      document.getElementById('ref-year').value = '';
+      document.getElementById('ref-title').value = '';
+      document.getElementById('ref-source').value = '';
+      saveCurrentApaDoc();
+      showToast('Referencia APA 7 agregada');
+    }
+
+    function insertPresetReference(key) {
+      const presets = {
+        SEP: 'Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. Dirección General de Desarrollo Curricular.',
+        Bañuelos: 'Sánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.',
+        Devis: 'Devís, J., & Peiró, C. (2007). Nuevas perspectivas curriculares en Educación Física: la salud y los juegos modificados. INDE.'
+      };
+      const refBox = document.getElementById('apa-references');
+      if (presets[key] && !refBox.value.includes(presets[key])) {
+        refBox.value = (refBox.value.trim() ? refBox.value.trim() + '\n' : '') + presets[key];
+        saveCurrentApaDoc();
+        showToast('Referencia oficial insertada');
+      }
+    }
+
+    function buildOfficialApaPrintHTML(doc) {
+      const formatParagraphs = (rawText) => {
+        return (rawText || '')
+          .split('\n')
+          .map(p => p.trim())
+          .filter(Boolean)
+          .map(p => `<p class="apa-paragraph">${escapeHtml(p)}</p>`)
+          .join('');
+      };
+
+      const formatReferences = (rawRefs) => {
+        return (rawRefs || '')
+          .split('\n')
+          .map(r => r.trim())
+          .filter(Boolean)
+          .sort((a, b) => a.localeCompare(b))
+          .map(r => `<p class="apa-hanging-indent">${escapeHtml(r)}</p>`)
+          .join('');
+      };
+
+      return `
+        <div class="apa-page max-w-4xl mx-auto p-4 sm:p-8">
+          <!-- PORTADA OFICIAL ESTUDIANTIL APA 7 CON LOGOS Y MEMBRETE -->
+          <div style="min-height: 88vh; display: flex; flex-direction: column; justify-content: space-between;">
+            <div>
+              ${buildInstitutionalHeaderHTML()}
+              <div style="text-align: right; font-size: 11pt; margin-top: 6px;">1</div>
+            </div>
+
+            <div style="text-align: center; margin: 60px auto; max-width: 85%;">
+              <p style="font-weight: bold; font-size: 14pt; margin-bottom: 36pt; line-height: 2.0;">
+                ${escapeHtml(doc.title)}
+              </p>
+              <p style="font-size: 12pt; margin-bottom: 4pt;">${escapeHtml(doc.author)}</p>
+              <p style="font-size: 12pt; margin-bottom: 4pt;">Escuela Normal de Licenciatura en Educación Física "Pedro Reynol Ozuna Henning"</p>
+              <p style="font-size: 12pt; margin-bottom: 4pt;">Asignatura: ${escapeHtml(doc.subject)}</p>
+              <p style="font-size: 12pt; margin-bottom: 4pt;">Docente: ${escapeHtml(doc.instructor)}</p>
+              <p style="font-size: 12pt;">${escapeHtml(doc.date)}</p>
+            </div>
+
+            <div style="text-align: center; font-size: 10pt; border-top: 1px solid #cbd5e1; padding-top: 8px;">
+              Tuxtla Gutiérrez, Chiapas, México • Normativa APA 7ma Edición
+            </div>
+          </div>
+
+          <!-- CUERPO DEL TRABAJO EN PÁGINA NUEVA -->
+          <div class="apa-page-break" style="padding-top: 15px;">
+            ${buildInstitutionalHeaderHTML()}
+            <div style="text-align: right; font-size: 11pt; margin-bottom: 12px;">2</div>
+
+            <!-- Título Nivel 1 APA 7: Centrado y en Negrita -->
+            <h2 style="text-align: center; font-weight: bold; font-size: 12pt; margin-bottom: 12pt;">
+              ${escapeHtml(doc.title)}
+            </h2>
+
+            ${formatParagraphs(doc.intro)}
+
+            <!-- Encabezado Nivel 1 APA 7: Desarrollo -->
+            <h3 style="text-align: center; font-weight: bold; font-size: 12pt; margin-top: 18pt; margin-bottom: 8pt;">
+              Desarrollo y Fundamentación Pedagógica
+            </h3>
+            ${formatParagraphs(doc.body)}
+
+            <!-- Encabezado Nivel 1 APA 7: Conclusiones -->
+            <h3 style="text-align: center; font-weight: bold; font-size: 12pt; margin-top: 18pt; margin-bottom: 8pt;">
+              Conclusiones
+            </h3>
+            ${formatParagraphs(doc.conclusions)}
+
+            <!-- REFERENCIAS CON SANGRÍA FRANCESA -->
+            <div class="apa-page-break" style="padding-top: 15px;">
+              ${buildInstitutionalHeaderHTML()}
+              <h3 style="text-align: center; font-weight: bold; font-size: 12pt; margin-top: 12pt; margin-bottom: 14pt;">
+                Referencias
+              </h3>
+              ${formatReferences(doc.references)}
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function exportApaToWord() {
+      saveCurrentApaDoc();
+      const doc = getActiveApaDoc();
+      const htmlBody = buildOfficialApaPrintHTML(doc);
+      const wordHtml = `
+        <html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:w="urn:schemas-microsoft-com:office:word" xmlns="http://www.w3.org/TR/REC-html40">
+        <head><meta charset="utf-8"><title>${escapeHtml(doc.title)}</title>
+        <style>
+          body { font-family: 'Times New Roman', serif; font-size: 12pt; line-height: 2.0; }
+          .apa-paragraph { text-indent: 1.27cm; margin-bottom: 0; }
+          .apa-hanging-indent { margin-left: 1.27cm; text-indent: -1.27cm; }
+        </style>
+        </head><body>${htmlBody}</body></html>
+      `;
+      const blob = new Blob(['\ufeff', wordHtml], { type: 'application/msword' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `APA7_${doc.title.substring(0, 30).replace(/\s+/g, '_')}.doc`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Documento descargado en formato Word (.doc) con formato APA 7');
+    }
+
+    // =========================================================================
+    // MÓDULO 5 (NUEVO): RECOMENDADOR AUTOMATIZADO DE JUEGOS NEM
+    // =========================================================================
+    function renderRecommendedGames() {
+      const container = document.getElementById('games-catalog-container');
+      if (!container) return;
+      const faseFilter = document.getElementById('filter-game-fase').value;
+      const typeFilter = document.getElementById('filter-game-type').value;
+      const searchVal = (document.getElementById('filter-game-search').value || '').toLowerCase();
+
+      const filtered = (appState.nemGames || []).filter(g => {
+        const matchFase = faseFilter === 'ALL' || g.fase === faseFilter;
+        const matchType = typeFilter === 'ALL' || g.tipo === typeFilter;
+        const matchSearch = !searchVal ||
+          g.titulo.toLowerCase().includes(searchVal) ||
+          g.faseDesarrollo.toLowerCase().includes(searchVal) ||
+          g.materiales.toLowerCase().includes(searchVal);
+        return matchFase && matchType && matchSearch;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-slate-600 text-sm space-y-2">
+            <p>No hay juegos con esa combinación exacta. Toca el botón para generar actividades nuevas al instante:</p>
+            <button onclick="generateDynamicNemGames()" class="bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl">
+              ✨ Generar Juegos para esta Fase y Categoría
+            </button>
+          </div>`;
+        return;
+      }
+
+      container.innerHTML = filtered.map(g => `
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-4 hover:border-sky-300 transition">
+          <div class="space-y-2">
+            <div class="flex flex-wrap items-center justify-between gap-2">
+              <span class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900">
+                ${escapeHtml(g.fase)}
+              </span>
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-900">
+                ${escapeHtml(g.tipo)}
+              </span>
+            </div>
+
+            <h4 class="font-extrabold text-slate-900 text-base">${escapeHtml(g.titulo)}</h4>
+            <p class="text-xs text-slate-600"><strong>PDA Vinculado:</strong> ${escapeHtml(g.pda)}</p>
+            <p class="text-xs text-sky-900 bg-sky-50 p-2 rounded-lg border border-sky-100">
+              <strong>Criterio de Evaluación:</strong> ${escapeHtml(g.evaluacion)}
+            </p>
+
+            <div class="text-xs text-slate-700 space-y-1 pt-1">
+              <div><strong>• Inicial:</strong> ${escapeHtml(g.faseInicial)}</div>
+              <div><strong>• Desarrollo:</strong> ${escapeHtml(g.faseDesarrollo)}</div>
+              <div><strong>• Final:</strong> ${escapeHtml(g.faseFinal)}</div>
+            </div>
+
+            <div class="pt-2 flex flex-wrap gap-2 text-[11px] text-slate-500">
+              <span class="bg-slate-100 px-2 py-0.5 rounded"><strong>Estrategias:</strong> ${escapeHtml(g.estrategias)}</span>
+              <span class="bg-slate-100 px-2 py-0.5 rounded"><strong>Materiales:</strong> ${escapeHtml(g.materiales)}</span>
+            </div>
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <span class="text-[11px] text-slate-400">Listo para Plantilla Oficial</span>
+            <button type="button" onclick="sendGameToActivePlan('${g.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus-circle" class="w-4 h-4"></i> Enviar a mi Planeación Activa
+            </button>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function generateDynamicNemGames() {
+      const faseSel = document.getElementById('filter-game-fase').value;
+      const tipoSel = document.getElementById('filter-game-type').value;
+      const targetFase = faseSel === 'ALL' ? 'Fase 6 (1º, 2º y 3º Secundaria)' : faseSel;
+      const targetTipo = tipoSel === 'ALL' ? 'Juegos cooperativos' : tipoSel;
+
+      const templates = [
+        {
+          titulo: `Reto Cooperativo "La Red de Rescate" (${targetFase.split(' ')[0]} ${targetFase.split(' ')[1] || ''})`,
+          pda: 'Valora la diversidad de posibilidades motrices propias y de sus compañeros en situaciones colectivas sin exclusión.',
+          evaluacion: 'Sincronización Colectiva y Empatía Motriz: Coordina desplazamientos grupales manteniendo la cohesión del equipo y respetando acuerdos.',
+          faseInicial: '6 min • Activación articular en parejas con pases cortos y cambios de dirección al silbato.',
+          faseDesarrollo: '39 min • En equipos de 6 a 8 integrantes forman una red sujetando aros o paliacates por los extremos (sin contacto brusco); deben transportar pelotas recicladas o conos de una zona a otra superando obstáculos mientras el resto realiza trabajo activo en espejo.',
+          faseFinal: '5 min • Vuelta a la calma y diálogo reflexivo sobre la comunicación asertiva en la cancha.',
+          estrategias: `${targetTipo}, Resolución de problemas, Trabajo colaborativo`,
+          estilos: 'Descubrimiento guiado, Resolución de problemas',
+          materiales: 'Aros, paliacates, conos, pelotas de papel reciclado.'
+        },
+        {
+          titulo: `Circuito Lúdico "Guardianes del Territorio Sin Filas"`,
+          pda: 'Pone en práctica sus capacidades físico-motrices y tácticas en juegos modificados de participación simultánea.',
+          evaluacion: 'Velocidad de Reacción y Toma de Decisiones: Actúa estratégicamente en roles de ataque y defensa manteniendo alto compromiso motor.',
+          faseInicial: '5 min • Juego de persecución por zonas "Espejos Veloces" con todo el grupo activo.',
+          faseDesarrollo: '40 min • Cancha dividida en 4 cuadrantes simultáneos (10 alumnos por cuadrante). Cada equipo protege sus conos/botellas mientras intenta conquistar los implementos del cuadrante vecino mediante pases y fintas, sin filas de espera.',
+          faseFinal: '5 min • Estiramientos guiados por los propios alumnos y autoevaluación del juego limpio.',
+          estrategias: `${targetTipo}, Juegos modificados de cancha dividida`,
+          estilos: 'Asignación de tareas, Enseñanza recíproca',
+          materiales: 'Conos, botellas PET, aros, pelotas de vinil.'
+        }
+      ];
+
+      templates.forEach((tpl, i) => {
+        appState.nemGames.unshift({
+          id: 'game-gen-' + Date.now() + '-' + i,
+          titulo: tpl.titulo,
+          fase: targetFase,
+          tipo: targetTipo,
+          pda: tpl.pda,
+          evaluacion: tpl.evaluacion,
+          faseInicial: tpl.faseInicial,
+          faseDesarrollo: tpl.faseDesarrollo,
+          faseFinal: tpl.faseFinal,
+          estrategias: tpl.estrategias,
+          estilos: tpl.estilos,
+          materiales: tpl.materiales
+        });
+      });
+
+      persistState();
+      renderRecommendedGames();
+      showToast(`2 nuevos juegos NEM generados para ${targetFase}`);
+    }
+
+    function sendGameToActivePlan(gameId) {
+      const game = appState.nemGames.find(g => g.id === gameId);
+      if (!game) return;
+      const plan = getActivePlan();
+      const nextNum = plan.sessions.length + 1;
+      plan.sessions.push({
+        numero: nextNum,
+        evaluacion: game.evaluacion,
+        faseInicial: game.faseInicial,
+        faseDesarrollo: `${game.titulo}: ${game.faseDesarrollo}`,
+        faseFinal: game.faseFinal,
+        estrategias: game.estrategias,
+        estilos: game.estilos,
+        materiales: game.materiales
+      });
+      // Sincronizar puntaje por defecto en los alumnos de esa planeación
+      (plan.students || []).forEach(st => {
+        if (!st.scores) st.scores = {};
+        st.scores[`s${nextNum}`] = 4;
+      });
+      persistState();
+      switchTab('planeaciones');
+      showToast(`Juego agregado como Sesión ${nextNum} en tu Planeación Activa`);
     }
 
     // =========================================================================
@@ -1325,43 +2489,40 @@ TÍTULO DEL TRABAJO: ${title}
           </div>
 
           <div class="p-4 sm:p-5 space-y-4">
-            <!-- Evaluación de la sesión -->
             <div>
               <label class="block text-xs font-bold uppercase text-sky-800 mb-1">
                 Criterio / Indicador de Evaluación de la Sesión ${idx + 1} (Técnico-Motriz y Actitudinal) *
               </label>
-              <input type="text" required class="sess-evaluacion w-full rounded-xl border border-sky-300 bg-sky-50/40 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-sky-500" value="${escapeHtml(s.evaluacion)}" placeholder="Ej. Control Óculo-Pedal y Convivencia en Relevos: Conduce la pelota con los pies..." />
+              <input type="text" required class="sess-evaluacion w-full rounded-xl border border-sky-300 bg-sky-50/40 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-sky-500" value="${escapeHtml(s.evaluacion)}" />
             </div>
 
-            <!-- Tres Fases de la Clase -->
             <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase Inicial (ej. 5-10 min) *</label>
-                <textarea rows="4" required class="sess-inicial w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm" placeholder="Tiempo + Calentamiento / Movilidad articular / Activación lúdica...">${escapeHtml(s.faseInicial)}</textarea>
+                <textarea rows="4" required class="sess-inicial w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm">${escapeHtml(s.faseInicial)}</textarea>
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase de Desarrollo (ej. 35-40 min) *</label>
-                <textarea rows="4" required class="sess-desarrollo w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm" placeholder="Tiempo + Actividades centrales, estaciones, circuitos, variantes inclusivas...">${escapeHtml(s.faseDesarrollo)}</textarea>
+                <textarea rows="4" required class="sess-desarrollo w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm">${escapeHtml(s.faseDesarrollo)}</textarea>
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase Final (ej. 5-10 min) *</label>
-                <textarea rows="4" required class="sess-final w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm" placeholder="Tiempo + Vuelta a la calma, estiramientos y reflexión metacognitiva...">${escapeHtml(s.faseFinal)}</textarea>
+                <textarea rows="4" required class="sess-final w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm">${escapeHtml(s.faseFinal)}</textarea>
               </div>
             </div>
 
-            <!-- Estrategias, Estilos y Materiales -->
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Estrategias Didácticas *</label>
-                <input type="text" required class="sess-estrategias w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estrategias)}" placeholder="Juegos cooperativos, relevos, motores, sensoriales..." />
+                <input type="text" required class="sess-estrategias w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estrategias)}" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Estilos de Enseñanza *</label>
-                <input type="text" required class="sess-estilos w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estilos)}" placeholder="Mando directo, Descubrimiento guiado, Resolución de problemas..." />
+                <input type="text" required class="sess-estilos w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estilos)}" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Recursos Materiales *</label>
-                <input type="text" required class="sess-materiales w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.materiales)}" placeholder="Conos, aros, pelotas, paliacates, colchonetas..." />
+                <input type="text" required class="sess-materiales w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.materiales)}" />
               </div>
             </div>
           </div>
@@ -1553,8 +2714,12 @@ TÍTULO DEL TRABAJO: ${title}
       if (!document.getElementById('module-planeaciones').classList.contains('hidden')) {
         saveCurrentPlan();
       }
+      if (!document.getElementById('module-apa7').classList.contains('hidden')) {
+        saveCurrentApaDoc();
+      }
       appState.printMode = mode;
       switchTab('exportar');
+      setPrintMode(mode);
     }
 
     // =========================================================================
@@ -1569,7 +2734,6 @@ TÍTULO DEL TRABAJO: ${title}
       document.getElementById('eval-aspectos-destacados').value = plan.aspectosDestacados || '';
       document.getElementById('eval-bap-notes').value = plan.bapNotes || '';
 
-      // Renderizar tarjetas de indicadores por sesión + indicador transversal
       const indList = document.getElementById('eval-indicators-list');
       const sessionCardsHtml = plan.sessions.map((s, idx) => `
         <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
@@ -1674,7 +2838,6 @@ TÍTULO DEL TRABAJO: ${title}
       if (!student) return;
       if (!student.scores) student.scores = {};
       const current = student.scores[scoreKey] || 4;
-      // Ciclo rápido táctil: 4 (D) -> 3 (S) -> 2 (EP) -> 1 (RA) -> 4 (D)
       const next = current === 4 ? 3 : current === 3 ? 2 : current === 2 ? 1 : 4;
       student.scores[scoreKey] = next;
       persistState();
@@ -1683,7 +2846,7 @@ TÍTULO DEL TRABAJO: ${title}
 
     function calculateStudentStats(student, numSessions) {
       let sum = 0;
-      let count = numSessions + 1; // Sesiones + Transversal
+      let count = numSessions + 1;
       for (let i = 1; i <= numSessions; i++) {
         sum += Number(student.scores?.[`s${i}`] || 4);
       }
@@ -1748,7 +2911,6 @@ TÍTULO DEL TRABAJO: ${title}
       showToast('Notas cualitativas guardadas');
     }
 
-    // Modal de carga masiva de alumnos (30 a 40 alumnos)
     function openBulkStudentsModal() {
       const plan = getActivePlan();
       document.getElementById('bulk-students-textarea').value = (plan.students || []).map(s => s.name).join('\n');
@@ -1795,31 +2957,37 @@ TÍTULO DEL TRABAJO: ${title}
     }
 
     // =========================================================================
-    // MÓDULO 4: IMPRESIÓN OFICIAL (@media print) Y EXPORTACIÓN CSV / JSON
+    // MÓDULO 6: IMPRESIÓN OFICIAL (@media print) CON LOGOTIPOS Y EXPORTACIÓN
     // =========================================================================
     function setPrintMode(mode) {
       appState.printMode = mode;
-      const btnPlan = document.getElementById('btn-mode-plan');
-      const btnEval = document.getElementById('btn-mode-eval');
-
-      if (mode === 'plan') {
-        btnPlan.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
-        btnEval.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
-      } else {
-        btnEval.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
-        btnPlan.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
-      }
+      const modes = ['plan', 'eval', 'apa'];
+      modes.forEach(m => {
+        const btn = document.getElementById(`btn-mode-${m}`);
+        if (!btn) return;
+        if (m === mode) {
+          btn.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
+        } else {
+          btn.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
+        }
+      });
       renderPrintPreview();
     }
 
     function renderPrintPreview() {
       const plan = getActivePlan();
+      const apaDoc = getActiveApaDoc();
       const wrapper = document.getElementById('print-preview-wrapper');
       const directPrint = document.getElementById('direct-print-area');
 
-      const htmlContent = appState.printMode === 'plan'
-        ? buildOfficialPlanPrintHTML(plan)
-        : buildOfficialEvalPrintHTML(plan);
+      let htmlContent = '';
+      if (appState.printMode === 'eval') {
+        htmlContent = buildOfficialEvalPrintHTML(plan);
+      } else if (appState.printMode === 'apa') {
+        htmlContent = buildOfficialApaPrintHTML(apaDoc);
+      } else {
+        htmlContent = buildOfficialPlanPrintHTML(plan);
+      }
 
       wrapper.innerHTML = htmlContent;
       directPrint.innerHTML = htmlContent;
@@ -1848,13 +3016,14 @@ TÍTULO DEL TRABAJO: ${title}
 
       return `
         <div class="text-black max-w-full">
-          <div class="text-center border-b-2 border-black pb-2 mb-3">
-            <p class="text-xs font-bold uppercase">ESCUELA NORMAL DE LICENCIATURA EN EDUCACIÓN FÍSICA "PEDRO REYNOL OZUNA HENNING"</p>
-            <h2 class="text-base font-extrabold uppercase">${escapeHtml(plan.escuela)}</h2>
+          <!-- Membrete Oficial con Logotipo Izquierdo (Secretaría), Texto Central y Logotipo Derecho (ENLEF) -->
+          ${buildInstitutionalHeaderHTML()}
+
+          <div class="text-center pb-2 mb-2">
+            <h2 class="text-sm font-extrabold uppercase">${escapeHtml(plan.escuela)}</h2>
             <p class="text-xs font-semibold">DOSIFICACIÓN DIDÁCTICA DE EDUCACIÓN FÍSICA • NUEVA ESCUELA MEXICANA</p>
           </div>
 
-          <!-- Encabezado Administrativo -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-3">
             <tbody>
               <tr>
@@ -1878,7 +3047,6 @@ TÍTULO DEL TRABAJO: ${title}
             </tbody>
           </table>
 
-          <!-- Elementos del Programa Sintético -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-3">
             <tbody>
               <tr>
@@ -1900,7 +3068,6 @@ TÍTULO DEL TRABAJO: ${title}
             </tbody>
           </table>
 
-          <!-- Ejes Articuladores -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-3">
             <thead>
               <tr>
@@ -1912,7 +3079,6 @@ TÍTULO DEL TRABAJO: ${title}
             </tbody>
           </table>
 
-          <!-- Matriz de Sesiones -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-6">
             <thead>
               <tr class="bg-slate-200">
@@ -1977,13 +3143,15 @@ TÍTULO DEL TRABAJO: ${title}
 
       return `
         <div class="text-black max-w-full">
-          <div class="text-center border-b-2 border-black pb-2 mb-3">
-            <h2 class="text-base font-extrabold uppercase">${escapeHtml(plan.escuela)}</h2>
+          <!-- Membrete Oficial con Logotipo Izquierdo (Secretaría), Texto Central y Logotipo Derecho (ENLEF) -->
+          ${buildInstitutionalHeaderHTML()}
+
+          <div class="text-center pb-2 mb-2">
+            <h2 class="text-sm font-extrabold uppercase">${escapeHtml(plan.escuela)}</h2>
             <p class="text-xs font-bold">INSTRUMENTO DE EVALUACIÓN: ESCALA DE APRECIACIÓN FORMATIVA</p>
             <p class="text-xs">Docente(s): ${escapeHtml(plan.docentes)} | ${escapeHtml(plan.fase)} | Grado y Grupo: ${escapeHtml(plan.grado)} "${escapeHtml(plan.grupo)}"</p>
           </div>
 
-          <!-- Escala Estimativa -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-3">
             <thead>
               <tr class="bg-slate-200">
@@ -2003,7 +3171,6 @@ TÍTULO DEL TRABAJO: ${title}
             </tbody>
           </table>
 
-          <!-- Matriz de Indicadores -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-3">
             <thead>
               <tr class="bg-slate-200">
@@ -2020,7 +3187,6 @@ TÍTULO DEL TRABAJO: ${title}
             </tbody>
           </table>
 
-          <!-- Registro Grupal -->
           <table class="print-table w-full border-collapse border border-black text-xs mb-4">
             <thead>
               <tr class="bg-slate-200">
@@ -2088,7 +3254,7 @@ TÍTULO DEL TRABAJO: ${title}
       a.download = `Respaldo_ENLEF_NEM_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Respaldo JSON descargado');
+      showToast('Respaldo JSON descargado (incluye logos, APA 7 y planeaciones)');
     }
 
     function importFullBackupJSON(event) {
@@ -2100,6 +3266,9 @@ TÍTULO DEL TRABAJO: ${title}
           const imported = JSON.parse(e.target.result);
           if (imported && Array.isArray(imported.plans) && Array.isArray(imported.tasks)) {
             appState = imported;
+            if (!appState.headerConfig) appState.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+            if (!appState.apaDocs) appState.apaDocs = JSON.parse(JSON.stringify(INITIAL_STATE.apaDocs));
+            if (!appState.nemGames) appState.nemGames = JSON.parse(JSON.stringify(INITIAL_NEM_GAMES));
             persistState();
             populateSubjectsSelects();
             renderTasks();
@@ -2128,7 +3297,7 @@ TÍTULO DEL TRABAJO: ${title}
     }
 
     // =========================================================================
-    // CONFIGURACIÓN PWA EMBEBIDA (WEB MANIFEST + SERVICE WORKER OFFLINE-FIRST)
+    // CONFIGURACIÓN PWA EMBEBIDA
     // =========================================================================
     function setupPWA() {
       const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0f172a"/><circle cx="256" cy="256" r="180" fill="#d97706"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="190" fill="#0f172a">EF</text></svg>`;
@@ -2137,7 +3306,7 @@ TÍTULO DEL TRABAJO: ${title}
       const manifest = {
         name: 'ENLEF-NEM Pro | Educación Física',
         short_name: 'ENLEF Pro',
-        description: 'Gestor de Tareas, Plantilla Oficial de Planeaciones y Escalas de Apreciación ENLEF Chiapas.',
+        description: 'Gestor de Tareas con IA, Plantilla Oficial, Escalas de Apreciación, APA 7 y Juegos NEM.',
         start_url: './index.html',
         display: 'standalone',
         orientation: 'any',
@@ -2155,27 +3324,19 @@ TÍTULO DEL TRABAJO: ${title}
       link.href = URL.createObjectURL(manifestBlob);
       document.head.appendChild(link);
 
-      // Registro de Service Worker cuando se aloja en HTTPS / localhost
       if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
         const swCode = `
-          const CACHE_NAME = 'enlef-nem-pwa-v1';
-          self.addEventListener('install', e => {
-            self.skipWaiting();
-          });
-          self.addEventListener('activate', e => {
-            e.waitUntil(self.clients.claim());
-          });
+          const CACHE_NAME = 'enlef-nem-pwa-v2';
+          self.addEventListener('install', e => { self.skipWaiting(); });
+          self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
           self.addEventListener('fetch', e => {
-            e.respondWith(
-              fetch(e.request).catch(() => caches.match(e.request))
-            );
+            e.respondWith(fetch(e.request).catch(() => caches.match(e.request)));
           });
         `;
         const swBlob = new Blob([swCode], { type: 'application/javascript' });
         navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
       }
 
-      // Captura del evento de instalación nativa en Android / Chrome / Edge
       let deferredPrompt = null;
       const installBtn = document.getElementById('install-pwa-btn');
       window.addEventListener('beforeinstallprompt', (e) => {
@@ -2193,13 +3354,15 @@ TÍTULO DEL TRABAJO: ${title}
       });
     }
 
-    // Inicialización al cargar el DOM
     window.addEventListener('DOMContentLoaded', () => {
       document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
       populateSubjectsSelects();
       renderTasks();
       renderPlanSelector();
       populatePlanForm(getActivePlan());
+      renderApaSelector();
+      populateApaForm(getActiveApaDoc());
+      renderRecommendedGames();
       renderPrintPreview();
       setupPWA();
       lucide.createIcons();
