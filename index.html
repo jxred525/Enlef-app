@@ -1,0 +1,2209 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <meta name="theme-color" content="#0f172a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="ENLEF Pro" />
+  <title>ENLEF-NEM Pro | Sistema de Gestión Pedagógica y Evaluación</title>
+
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons CDN -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            enlef: {
+              dark: '#0f172a',
+              primary: '#1e3a8a',
+              accent: '#0284c7',
+              gold: '#d97706',
+              light: '#f8fafc'
+            }
+          }
+        }
+      }
+    };
+  </script>
+
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
+
+    body {
+      font-family: 'Inter', system-ui, -apple-system, sans-serif;
+      background-color: #f1f5f9;
+      color: #0f172a;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    /* Scrollbar sutil para tablas en tablet/móvil */
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #e2e8f0;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #64748b;
+      border-radius: 3px;
+    }
+
+    /* Botones táctiles de evaluación para patio */
+    .eval-btn {
+      min-width: 40px;
+      min-height: 38px;
+      transition: all 0.15s ease;
+      user-select: none;
+    }
+    .eval-btn:active {
+      transform: scale(0.92);
+    }
+
+    /* Estilos exclusivos para impresión oficial (@media print) */
+    @media print {
+      @page {
+        size: landscape;
+        margin: 10mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+        font-size: 10pt;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .print-table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 12px;
+        page-break-inside: auto;
+      }
+      .print-table tr {
+        page-break-inside: avoid;
+        page-break-after: auto;
+      }
+      .print-table th,
+      .print-table td {
+        border: 1px solid #000000 !important;
+        padding: 5px 6px !important;
+        vertical-align: top;
+        text-align: left;
+        font-size: 9pt;
+      }
+      .print-table th {
+        background-color: #e2e8f0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+        font-weight: 700;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- BARRA SUPERIOR INSTITUCIONAL (NO SE IMPRIME) -->
+  <header class="no-print bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-700">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md font-extrabold text-slate-950 text-lg">
+          EF
+        </div>
+        <div>
+          <div class="flex items-center gap-2">
+            <h1 class="font-bold text-base md:text-lg tracking-tight leading-none">ENLEF "Pedro Reynol Ozuna Henning"</h1>
+            <span class="hidden sm:inline-block text-[11px] font-semibold uppercase px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-full">NEM 2026</span>
+          </div>
+          <p class="text-xs text-slate-400 mt-0.5">Tuxtla Gutiérrez, Chiapas • Sistema Integral de Docencia y Evaluación</p>
+        </div>
+      </div>
+
+      <!-- Acciones Rápidas / Estado Offline / Instalación -->
+      <div class="flex items-center gap-2">
+        <span id="network-badge" class="text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 flex items-center gap-1.5">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="network-text">Activo (Local DB)</span>
+        </span>
+        <button id="install-pwa-btn" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
+          <i data-lucide="download" class="w-4 h-4"></i> Instalar App
+        </button>
+      </div>
+    </div>
+
+    <!-- NAVEGACIÓN DE LOS 4 MÓDULOS -->
+    <nav class="bg-slate-800/90 border-t border-slate-700/80 overflow-x-auto">
+      <div class="max-w-7xl mx-auto px-2 sm:px-4 flex space-x-1 sm:space-x-2 py-1.5">
+        <button onclick="switchTab('tareas')" id="tab-btn-tareas" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow">
+          <i data-lucide="check-square" class="w-4 h-4"></i>
+          <span>1. Gestor de Tareas ENLEF</span>
+          <span id="badge-count-tareas" class="ml-1 px-1.5 py-0.2 bg-slate-900/50 rounded-full text-[11px]">0</span>
+        </button>
+        <button onclick="switchTab('planeaciones')" id="tab-btn-planeaciones" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
+          <span>2. Plantilla Maestra Planeación</span>
+        </button>
+        <button onclick="switchTab('evaluacion')" id="tab-btn-evaluacion" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="award" class="w-4 h-4"></i>
+          <span>3. Escala de Apreciación (Patio)</span>
+        </button>
+        <button onclick="switchTab('exportar')" id="tab-btn-exportar" class="nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="printer" class="w-4 h-4"></i>
+          <span>4. Impresión Oficial y Respaldo</span>
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- CONTENEDOR PRINCIPAL -->
+  <main class="no-print flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5">
+
+    <!-- ===================================================================
+         MÓDULO 1: GESTOR Y CLASIFICADOR INTELIGENTE DE TAREAS ENLEF
+    ==================================================================== -->
+    <section id="module-tareas" class="module-section space-y-6">
+      <!-- Encabezado y Gestión de Materias -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="book-open" class="w-5 h-5 text-sky-600"></i>
+              Gestor Académico y Estructurador de Tareas ENLEF
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Clasifica tus entregas por asignatura curricular y genera bosquejos académicos con formato APA automáticamente.
+            </p>
+          </div>
+          <div class="flex items-center gap-2">
+            <button onclick="openSubjectsModal()" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition">
+              <i data-lucide="settings" class="w-4 h-4"></i> Configurar Materias (<span id="subjects-count">9</span>)
+            </button>
+          </div>
+        </div>
+
+        <!-- Formulario de Captura Rápida de Tarea -->
+        <form id="task-form" onsubmit="saveTask(event)" class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4">
+          <input type="hidden" id="task-id" />
+
+          <div class="md:col-span-5">
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Asignatura Curricular ENLEF *</label>
+            <select id="task-subject" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+          </div>
+
+          <div class="md:col-span-4">
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Título de la Tarea / Producto *</label>
+            <input type="text" id="task-title" required placeholder="Ej. Ensayo sobre ética docente, Circuito inclusivo..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+          </div>
+
+          <div class="md:col-span-3 grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fecha Límite *</label>
+              <input type="date" id="task-date" required class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Prioridad</label>
+              <select id="task-priority" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+                <option value="Alta">🔴 Alta</option>
+                <option value="Media" selected>🟡 Media</option>
+                <option value="Baja">🟢 Baja</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="md:col-span-12">
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Instrucciones Detalladas / Rúbrica del Docente *</label>
+            <textarea id="task-instructions" rows="3" required placeholder="Pega o escribe aquí las indicaciones de la tarea. El asistente pedagógico usará este texto y la materia seleccionada para estructurar tu trabajo..." class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+          </div>
+
+          <!-- Botón de Generar Desglose Académico + Guardar -->
+          <div class="md:col-span-12 flex flex-wrap items-center justify-between gap-3 pt-1">
+            <button type="button" onclick="generateAcademicOutlineFromForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition">
+              <i data-lucide="sparkles" class="w-4 h-4"></i>
+              Generar Desglose / Estructura Académica (APA)
+            </button>
+
+            <div class="flex items-center gap-2">
+              <button type="button" onclick="resetTaskForm()" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs sm:text-sm hover:bg-slate-100">
+                Limpiar
+              </button>
+              <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow flex items-center gap-2 transition">
+                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+                <span id="task-submit-label">Guardar Tarea</span>
+              </button>
+            </div>
+          </div>
+
+          <!-- Contenedor de Bosquejo Académico Generado -->
+          <div id="task-outline-preview-box" class="hidden md:col-span-12 bg-slate-900 text-slate-100 rounded-xl p-4 border border-slate-700">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+              <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <i data-lucide="file-text" class="w-4 h-4"></i> Bosquejo Académico Generado (Editable)
+              </span>
+              <button type="button" onclick="copyOutlineText()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-sky-300 flex items-center gap-1">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Texto
+              </button>
+            </div>
+            <textarea id="task-outline-text" rows="8" class="w-full bg-slate-950 text-slate-100 text-xs sm:text-sm font-mono p-3 rounded-lg border border-slate-800 focus:outline-none"></textarea>
+          </div>
+        </form>
+      </div>
+
+      <!-- Filtros y Tablero Kanban / Lista de Pendientes -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
+          <h3 class="font-bold text-slate-800 flex items-center gap-2">
+            <i data-lucide="layout-grid" class="w-5 h-5 text-sky-600"></i>
+            Tablero de Control de Entregas y Recordatorios
+          </h3>
+          <div class="flex flex-wrap items-center gap-2">
+            <select id="filter-task-subject" onchange="renderTasks()" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-slate-50">
+              <option value="ALL">Todas las asignaturas</option>
+            </select>
+            <select id="filter-task-status" onchange="renderTasks()" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-slate-50">
+              <option value="ALL">Todos los estados</option>
+              <option value="Pendiente">⏳ Pendientes</option>
+              <option value="En Progreso">⚡ En Progreso</option>
+              <option value="Completada">✅ Completadas</option>
+            </select>
+          </div>
+        </div>
+
+        <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         MÓDULO 2: GENERADOR Y EDITOR CENTRAL DE PLANEACIONES (PLANTILLA DEFINITIVA)
+    ==================================================================== -->
+    <section id="module-planeaciones" class="module-section hidden space-y-6">
+      <!-- Barra superior de selección de planeaciones guardadas -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
+        <div class="flex items-center gap-3 flex-1 min-w-[260px]">
+          <label class="text-xs font-bold uppercase text-slate-500 whitespace-nowrap">Planeación Activa:</label>
+          <select id="plan-selector" onchange="loadSelectedPlan(this.value)" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 bg-slate-50 focus:ring-2 focus:ring-sky-500"></select>
+        </div>
+        <div class="flex flex-wrap items-center gap-2">
+          <button onclick="createNewBlankPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="file-plus" class="w-4 h-4 text-sky-600"></i> Nueva Planeación en Blanco
+          </button>
+          <button onclick="duplicateCurrentPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> Duplicar
+          </button>
+          <button onclick="deleteCurrentPlan()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1 transition">
+            <i data-lucide="trash-2" class="w-4 h-4"></i>
+          </button>
+        </div>
+      </div>
+
+      <!-- FORMULARIO DE LA PLANTILLA OFICIAL DEFINITIVA -->
+      <form id="plan-form" onsubmit="saveCurrentPlan(event)" class="space-y-6">
+        <!-- 1. ENCABEZADO INSTITUCIONAL Y ADMINISTRATIVO -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-slate-900 text-white px-5 py-3 flex items-center justify-between">
+            <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="building-2" class="w-4 h-4 text-amber-400"></i>
+              I. Encabezado Institucional y Datos Administrativos (Plantilla Oficial)
+            </h3>
+            <span class="text-[11px] text-slate-400">Formato Definitivo ENLEF</span>
+          </div>
+
+          <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Escuela de Práctica *</label>
+              <input type="text" id="plan-escuela" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold" placeholder="Ej. ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA" />
+            </div>
+            <div class="sm:col-span-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Docente(s) en Formación *</label>
+              <input type="text" id="plan-docentes" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Nombres completos de los docentes en formación" />
+            </div>
+
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nivel Educativo</label>
+              <select id="plan-nivel" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                <option value="Preescolar">Preescolar</option>
+                <option value="Primaria" selected>Primaria</option>
+                <option value="Secundaria">Secundaria</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase (NEM)</label>
+              <select id="plan-fase" onchange="suggestContentByFase(this.value)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+                <option value="Fase 2 (Preescolar)">Fase 2 (Preescolar)</option>
+                <option value="Fase 3 (1º y 2º Primaria)">Fase 3 (1º y 2º Primaria)</option>
+                <option value="Fase 4 (3º y 4º Primaria)" selected>Fase 4 (3º y 4º Primaria)</option>
+                <option value="Fase 5 (5º y 6º Primaria)">Fase 5 (5º y 6º Primaria)</option>
+                <option value="Fase 6 (1º, 2º y 3º Secundaria)">Fase 6 (Secundaria)</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Grado</label>
+              <input type="text" id="plan-grado" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. 4º" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Grupo(s)</label>
+              <input type="text" id="plan-grupo" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. A y B" />
+            </div>
+
+            <!-- Temporalidad -->
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Mes / Periodo</label>
+              <input type="text" id="plan-mes" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Abril / Octubre" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fechas de Aplicación</label>
+              <input type="text" id="plan-fecha" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Del 6 al 24 de Abril" />
+            </div>
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Unidad Didáctica</label>
+              <input type="text" id="plan-unidad" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Unidad 1" />
+            </div>
+            <div class="grid grid-cols-2 gap-2">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">N° Sesiones</label>
+                <input type="number" id="plan-num-sesiones" min="1" max="20" readonly class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-bold text-center" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tiempo (min)</label>
+                <input type="text" id="plan-tiempo" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-sm" placeholder="50 min" />
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2. ELEMENTOS DEL PROGRAMA SINTÉTICO Y EJES ARTICULADORES -->
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+          <div class="bg-slate-900 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="compass" class="w-4 h-4 text-sky-400"></i>
+              II. Elementos del Programa Sintético y Ejes Articuladores (NEM)
+            </h3>
+            <button type="button" onclick="fillPresetPDA()" class="text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition">
+              <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Autocompletar Contenido/PDA Oficial
+            </button>
+          </div>
+
+          <div class="p-4 sm:p-6 space-y-4">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Campo(s) Formativo(s) *</label>
+                <input type="text" id="plan-campo" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium" placeholder="Ej. De lo Humano y Lo Comunitario / Ética, Naturaleza y Sociedades" />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Contenido del Programa Sintético *</label>
+                <input type="text" id="plan-contenido" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium" placeholder="Ej. Capacidades y habilidades motrices / Potencialidades cognitivas, expresivas, motrices..." />
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Diagnóstico Contextual del Grupo *</label>
+                <textarea id="plan-diagnostico" rows="3" required class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Describe las características motrices, de convivencia, subgrupos, material disponible y necesidades de inclusión (BAP)..."></textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Proceso de Desarrollo de Aprendizaje (PDA) *</label>
+                <textarea id="plan-pda" rows="3" required class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Pone en práctica sus habilidades motrices en situaciones lúdicas, individuales y colectivas..."></textarea>
+              </div>
+            </div>
+
+            <!-- Matriz de los 7 Ejes Articuladores -->
+            <div class="pt-2">
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Matriz de Ejes Articuladores (Selección Interactiva 1 al 7)</label>
+              <div id="ejes-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3. BLOQUE DINÁMICO DE SESIONES (1 A N SESIONES) -->
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-sm">
+            <div>
+              <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
+                III. Dosificación de Sesiones (Fases, Evaluación, Estrategias y Recursos)
+              </h3>
+              <p class="text-xs text-slate-300">Los criterios de evaluación de cada sesión alimentan automáticamente la Escala de Apreciación del Módulo 3.</p>
+            </div>
+            <button type="button" onclick="addSessionBlock()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+              <i data-lucide="plus" class="w-4 h-4"></i> Agregar Sesión
+            </button>
+          </div>
+
+          <div id="sessions-container" class="space-y-5"></div>
+        </div>
+
+        <!-- BARRA FLOTANTE / INFERIOR DE GUARDADO Y PASO A EVALUACIÓN -->
+        <div class="sticky bottom-3 z-30 bg-slate-900/95 backdrop-blur text-white p-3.5 rounded-2xl shadow-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-300 flex items-center gap-2">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
+            <span>Plantilla Oficial sincronizada con el Generador de Escalas e Impresión.</span>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
+              <i data-lucide="save" class="w-4 h-4"></i> Guardar Planeación
+            </button>
+            <button type="button" onclick="saveAndGoToEvaluation()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
+              <i data-lucide="award" class="w-4 h-4"></i> Generar Escala de Apreciación
+            </button>
+            <button type="button" onclick="saveAndGoToPrint('plan')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
+              <i data-lucide="printer" class="w-4 h-4"></i> Vista Oficial de Impresión
+            </button>
+          </div>
+        </div>
+      </form>
+    </section>
+
+    <!-- ===================================================================
+         MÓDULO 3: GENERADOR AUTOMÁTICO DE ESCALAS DE APRECIACIÓN (MODO PATIO)
+    ==================================================================== -->
+    <section id="module-evaluacion" class="module-section hidden space-y-6">
+      <!-- Cabecera de la Escala de Apreciación -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+          <div>
+            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">Instrumento Formativo NEM</span>
+            <h2 id="eval-header-school" class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA</h2>
+            <p id="eval-header-meta" class="text-xs sm:text-sm text-slate-600"></p>
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="openBulkStudentsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
+              <i data-lucide="users" class="w-4 h-4 text-sky-600"></i> Cargar Lista Rápida (30-40 Alumnos)
+            </button>
+            <button onclick="exportEvaluationCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel (CSV)
+            </button>
+            <button onclick="saveAndGoToPrint('eval')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Escala
+            </button>
+          </div>
+        </div>
+
+        <!-- Niveles de Desempeño Oficiales (4 a 1) -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+          <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs uppercase text-emerald-900">Destacado (D)</span>
+              <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-emerald-600 text-white">Valor: 4</span>
+            </div>
+            <p class="text-[11px] text-emerald-800 mt-1 leading-relaxed">Ejecuta el patrón motriz con fluidez, control y autonomía; muestra empatía, respeto a las reglas y liderazgo cooperativo constante.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-sky-50 border border-sky-200">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs uppercase text-sky-900">Satisfactorio (S)</span>
+              <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-sky-600 text-white">Valor: 3</span>
+            </div>
+            <p class="text-[11px] text-sky-800 mt-1 leading-relaxed">Logra el desempeño motriz y respeta normas y turnos la mayor parte del tiempo con mínimas orientaciones del docente.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-amber-50 border border-amber-200">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs uppercase text-amber-900">En Proceso (EP)</span>
+              <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-amber-500 text-slate-950">Valor: 2</span>
+            </div>
+            <p class="text-[11px] text-amber-900 mt-1 leading-relaxed">Requiere apoyo constante para coordinar los movimientos o para regular actitudes competitivas e integrarse con el grupo.</p>
+          </div>
+          <div class="p-3 rounded-xl bg-rose-50 border border-rose-200">
+            <div class="flex items-center justify-between">
+              <span class="font-extrabold text-xs uppercase text-rose-900">Requiere Apoyo (RA)</span>
+              <span class="px-2 py-0.5 text-xs font-extrabold rounded bg-rose-600 text-white">Valor: 1</span>
+            </div>
+            <p class="text-[11px] text-rose-800 mt-1 leading-relaxed">Muestra dificultad notable en la ejecución motriz básica o rechazo a la participación e interacción colectiva.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Matriz de Indicadores Extraídos Automáticamente por Sesión -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+          <i data-lucide="list-checks" class="w-4 h-4 text-sky-600"></i>
+          Matriz de Indicadores de Observación (Extraídos de las Sesiones de la Planeación)
+        </h3>
+        <div id="eval-indicators-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
+      </div>
+
+      <!-- Lista Interactiva de Alumnos para Calificar en Patio (Tablet / Celular) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50">
+          <div>
+            <h3 class="font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="tablet-smartphone" class="w-5 h-5 text-sky-600"></i>
+              Registro Táctil de Grupo en Patio (Toca cada celda para alternar D=4, S=3, EP=2, RA=1)
+            </h3>
+            <p class="text-xs text-slate-500">Los cambios se guardan al instante en el dispositivo y calculan el promedio y nivel global automáticamente.</p>
+          </div>
+
+          <form onsubmit="addSingleStudent(event)" class="flex items-center gap-2">
+            <input type="text" id="new-student-name" required placeholder="Nombre del alumno(a)..." class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+            <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 whitespace-nowrap">
+              <i data-lucide="user-plus" class="w-4 h-4"></i> Agregar
+            </button>
+          </form>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse">
+            <thead>
+              <tr id="eval-table-head-row" class="bg-slate-900 text-white text-xs uppercase"></tr>
+            </thead>
+            <tbody id="eval-table-body" class="divide-y divide-slate-200 text-sm"></tbody>
+          </table>
+        </div>
+
+        <!-- Retroalimentación Cualitativa General y Ajustes BAP -->
+        <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Aspectos Destacados del Grupo</label>
+            <textarea id="eval-aspectos-destacados" onchange="saveEvaluationNotes()" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm bg-white" placeholder="Avances en convivencia, integración de subgrupos A y B, respuesta motriz..."></textarea>
+          </div>
+          <div>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Barreras para el Aprendizaje y la Participación (BAP) / Ajustes Razonables</label>
+            <textarea id="eval-bap-notes" onchange="saveEvaluationNotes()" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm bg-white" placeholder="Adecuaciones implementadas (ej. trabajo sin contacto físico en colchonetas, variantes motrices)..."></textarea>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ===================================================================
+         MÓDULO 4: EXPORTACIÓN, RESPALDO E IMPRESIÓN OFICIAL
+    ==================================================================== -->
+    <section id="module-exportar" class="module-section hidden space-y-6">
+      <!-- Controles de Vista de Impresión y Respaldo Inter-Dispositivos -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div>
+            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="printer" class="w-5 h-5 text-sky-600"></i>
+              Centro de Impresión Oficial y Sincronización (Tablet ⇄ Celular)
+            </h2>
+            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+              Previsualiza e imprime la Tabla Oficial de Dosificación Didáctica o la Escala de Apreciación sin bordes ni botones de interfaz.
+            </p>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="setPrintMode('plan')" id="btn-mode-plan" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5">
+              <i data-lucide="table" class="w-4 h-4"></i> Vista: Planeación Oficial
+            </button>
+            <button onclick="setPrintMode('eval')" id="btn-mode-eval" class="px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i data-lucide="award" class="w-4 h-4"></i> Vista: Escala de Apreciación
+            </button>
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5">
+              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / Guardar PDF Oficial
+            </button>
+          </div>
+        </div>
+
+        <!-- Herramientas de Respaldo JSON y CSV -->
+        <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+          <div class="text-xs text-slate-600">
+            <strong>Sincronización Manual Rápida:</strong> Exporta tu base de datos en JSON para pasar tus tareas, planeaciones y listas entre tu celular y tu tablet.
+          </div>
+          <div class="flex flex-wrap items-center gap-2">
+            <button onclick="exportEvaluationCSV()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar Evaluación (CSV)
+            </button>
+            <button onclick="exportFullBackupJSON()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 flex items-center gap-1">
+              <i data-lucide="database" class="w-3.5 h-3.5"></i> Exportar Respaldo Total (JSON)
+            </button>
+            <label class="cursor-pointer text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 flex items-center gap-1">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar Respaldo (JSON)
+              <input type="file" accept=".json" onchange="importFullBackupJSON(event)" class="hidden" />
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <!-- PREVISUALIZACIÓN DEL DOCUMENTO OFICIAL (SE IMPRIME AL 100%) -->
+      <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-4 sm:p-8 overflow-x-auto">
+        <div id="print-preview-wrapper"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <!-- CONTENEDOR EXCLUSIVO PARA IMPRESIÓN DIRECTA (@media print) -->
+  <div id="direct-print-area" class="print-only hidden"></div>
+
+  <!-- MODAL: GESTIÓN DE MATERIAS ENLEF -->
+  <div id="subjects-modal" class="no-print fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase tracking-wider">Asignaturas Curriculares ENLEF</h3>
+        <button onclick="closeSubjectsModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <form onsubmit="addCustomSubject(event)" class="flex gap-2">
+          <input type="text" id="new-subject-input" required placeholder="Nueva asignatura del semestre..." class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm" />
+          <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-4 py-2 rounded-xl">Agregar</button>
+        </form>
+        <ul id="subjects-modal-list" class="divide-y divide-slate-100 max-h-72 overflow-y-auto text-sm"></ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL: CARGA RÁPIDA DE LISTA DE ALUMNOS (30-40 ALUMNOS) -->
+  <div id="bulk-students-modal" class="no-print fixed inset-0 bg-slate-950/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl max-w-lg w-full shadow-2xl border border-slate-200 overflow-hidden">
+      <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
+        <h3 class="font-bold text-sm uppercase tracking-wider">Cargar Lista de Grupo (Un alumno por línea)</h3>
+        <button onclick="closeBulkStudentsModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
+      </div>
+      <div class="p-5 space-y-4">
+        <p class="text-xs text-slate-600">Pega aquí la lista de asistencia de tu grupo o genera una plantilla numerada rápida para evaluar en cancha:</p>
+        <textarea id="bulk-students-textarea" rows="8" class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm font-mono" placeholder="1. Hernández López Sofía&#10;2. Martínez Gómez Mateo&#10;3. Morales Ruiz Valentina..."></textarea>
+        <div class="flex flex-wrap items-center justify-between gap-2">
+          <button type="button" onclick="generateNumberedRoster(35)" class="text-xs font-semibold px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700">
+            Generar 35 Alumnos Numerados
+          </button>
+          <div class="flex gap-2">
+            <button type="button" onclick="closeBulkStudentsModal()" class="text-xs px-3 py-2 rounded-xl border border-slate-300 text-slate-600">Cancelar</button>
+            <button type="button" onclick="saveBulkStudents()" class="text-xs font-bold px-4 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white">Reemplazar / Cargar Lista</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- NOTIFICACIÓN TOAST -->
+  <div id="toast-notification" class="no-print fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+    <span id="toast-message">Guardado correctamente</span>
+  </div>
+
+  <!-- =========================================================================
+       LÓGICA MODULAR JAVASCRIPT (ES6+ / OFFLINE-FIRST / INDEXEDDB + LOCALSTORAGE)
+  ========================================================================== -->
+  <script>
+    const STORAGE_KEY = 'ENLEF_NEM_PRO_DB_V1';
+
+    // Catálogo de los 7 Ejes Articuladores Oficiales de la NEM
+    const EJES_ARTICULADORES = [
+      { id: 1, nombre: '1. Inclusión' },
+      { id: 2, nombre: '2. Pensamiento crítico' },
+      { id: 3, nombre: '3. Interculturalidad crítica' },
+      { id: 4, nombre: '4. Igualdad de género' },
+      { id: 5, nombre: '5. Vida saludable' },
+      { id: 6, nombre: '6. Apropiación de las culturas a través de la lectura y la escritura' },
+      { id: 7, nombre: '7. Artes y experiencias estéticas' }
+    ];
+
+    // Asignaturas oficiales solicitadas de la ENLEF "Pedro Reynol Ozuna Henning"
+    const DEFAULT_SUBJECTS = [
+      'Ética e identidad profesional',
+      'Desarrollo socioemocional y aprendizaje',
+      'Gestión del centro educativo',
+      'Investigación e innovación de la práctica docente',
+      'Promoción y prevención de la salud',
+      'Estrategias alternativas para la inclusión',
+      'La actividad motriz en el medio acuático',
+      'Inglés: producción de textos académicos en lengua extranjera',
+      'Taller deportivo'
+    ];
+
+    // Datos iniciales con las 2 planeaciones maestras (Primaria 6 sesiones + Secundaria Circuito Inclusivo)
+    const INITIAL_STATE = {
+      subjects: [...DEFAULT_SUBJECTS],
+      tasks: [
+        {
+          id: 'task-1',
+          subject: 'Estrategias alternativas para la inclusión',
+          title: 'Diseño de circuito motriz inclusivo sin contacto físico para secundaria',
+          date: '2026-10-20',
+          priority: 'Alta',
+          status: 'En Progreso',
+          instructions: 'Diseñar una propuesta de intervención en circuito por estaciones para grupos de 35 a 40 alumnos con escaso material (palos de golf de plástico, aros, conos y colchonetas), garantizando cero filas, seguridad física en colchonetas sin manipulación docente y participación equitativa.',
+          outline: `1. INTRODUCCIÓN CONTEXTUALIZADA (ENLEF / NEM)\n- Contextualización de la práctica docente en nivel Secundaria (Fase 6).\n- Reto pedagógico: Alto tiempo de compromiso motor en grupos masivos (35-40 estudiantes) con recursos materiales limitados.\n\n2. JUSTIFICACIÓN PEDAGÓGICA Y NORMATIVA\n- Enfoque de inclusión y eliminación de Barreras para el Aprendizaje y la Participación (BAP).\n- Protocolo de integridad física y prevención legal: Trabajo de core y coordinación decúbito en colchonetas sin contacto físico docente-alumno.\n\n3. DESARROLLO DE LA PROPUESTA DIDÁCTICA (4 ESTACIONES)\n- Estación 1 (Colchonetas): "El Engrane Cooperativo" (fuerza abdominal e inclusión por roles).\n- Estación 2 (Palos de golf y conos): "Las Camillas Espaciales" (control de tensión y compañero activo en espejo).\n- Estación 3 (Aros grandes): "El Cruce del Río" (resolución de problemas y comunicación táctica).\n- Estación 4 (Aros pequeños y conos): "Gato de Velocidad" (velocidad de reacción y toma de decisiones).\n\n4. CONCLUSIONES Y REFLEXIÓN DOCENTE\n- Valoración de la cooperación sobre la competencia excluyente.\n\n5. REFERENCIAS EN FORMATO APA (7ma Edición)\n- Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria. SEP.\n- Sánchez Bañuelos, F. (2003). Didáctica de la Educación Física. Prentice Hall.`
+        },
+        {
+          id: 'task-2',
+          subject: 'Investigación e innovación de la práctica docente',
+          title: 'Diagnóstico socioeducativo e integración grupal (4º A y B)',
+          date: '2026-10-23',
+          priority: 'Media',
+          status: 'Pendiente',
+          instructions: 'Sistematizar los hallazgos del diagnóstico en la Escuela Primaria Francisco González Bocanegra para superar la división entre subgrupos mediante juegos cooperativos y sensoriales.',
+          outline: ''
+        }
+      ],
+      activePlanId: 'plan-bocanegra-1',
+      printMode: 'plan',
+      plans: [
+        {
+          id: 'plan-bocanegra-1',
+          escuela: 'ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA',
+          docentes: 'Luis Jared Hernández González, Ney Rebeca López Alfonzo, Samuel Iturbe Velasco',
+          nivel: 'Primaria',
+          fase: 'Fase 4 (3º y 4º Primaria)',
+          grado: '4º',
+          grupo: 'A y B',
+          mes: 'Abril',
+          fecha: 'Sesiones 1 a 6 (Ciclo 2025 - 2026)',
+          unidad: 'Unidad 1',
+          tiempo: '50 min',
+          campo: 'De lo Humano y Lo Comunitario / Ética, Naturaleza y Sociedades',
+          contenido: 'Capacidades y habilidades motrices.',
+          diagnostico: 'Los grupos 4º A y B presentan buena disposición energética hacia el juego, pero tienden a segmentarse en subgrupos cerrados. Se requiere fortalecer el control óculo-pedal, la sincronización rítmica y la confianza mutua mediante dinámicas cooperativas.',
+          pda: 'Pone en práctica sus habilidades motrices en situaciones lúdicas, individuales y colectivas, para valorar la diversidad de posibilidades que contribuyen a mejorar su actuación.',
+          ejes: [1, 2, 4, 5],
+          aspectosDestacados: 'Evolución positiva en el respeto de turnos durante los relevos y mayor apertura para trabajar en parejas mixtas entre 4º A y 4º B.',
+          bapNotes: 'Adecuación de distancias en conducción óculo-pedal y acompañamiento auditivo cercano en la sesión 4 de percepción no visual.',
+          sessions: [
+            {
+              numero: 1,
+              evaluacion: 'Control Óculo-Pedal y Convivencia en Relevos: Conduce la pelota con los pies sorteando obstáculos (fútbol de botellas) y respeta el orden y los turnos dentro de su equipo.',
+              faseInicial: '5 min • Movilidad articular cefalocaudal y juego de activación "Cazadores de sombras" por parejas mixtas.',
+              faseDesarrollo: '40 min • "Fútbol de botellas y relevos": Conducción de pelota con ambos perfiles en zig-zag entre conos y botellas, derribando el objetivo y regresando para dar el relevo respetando turnos.',
+              faseFinal: '5 min • Estiramientos estáticos en círculo y diálogo breve sobre la importancia de respetar los turnos del compañero.',
+              estrategias: 'Juegos de relevos, Juegos motores, Juegos modificados',
+              estilos: 'Asignación de tareas, Mando directo',
+              materiales: 'Pelotas de vinil, botellas plásticas (PET), conos.'
+            },
+            {
+              numero: 2,
+              evaluacion: 'Velocidad de Reacción y Coordinación Óculo-Pedal: Responde oportunamente a estímulos auditivos/visuales y coordina el salto continuo sujetando la pelota entre las rodillas (canguro).',
+              faseInicial: '5 min • Juego de reacción rápida "Mar y Tierra con estímulos cruzados" (silbato y colores).',
+              faseDesarrollo: '40 min • "Relevo de Canguros y Reacción": Desplazamiento mediante saltos continuos sujetando la pelota entre las rodillas/tobillos sin usar las manos; al estímulo auditivo realizan pase preciso al compañero.',
+              faseFinal: '5 min • Respiración diafragmática y retroalimentación sobre el control postural durante el salto.',
+              estrategias: 'Juegos motores, Juegos de relevos, Juegos de velocidad de reacción',
+              estilos: 'Asignación de tareas, Descubrimiento guiado',
+              materiales: 'Pelotas de vinil, aros, conos, silbato.'
+            },
+            {
+              numero: 3,
+              evaluacion: 'Sincronización Interpersonal y Ajuste Espacial: Adapta su ritmo motriz y esquema corporal en parejas o pequeños grupos para mantenerse en espacios reducidos (hoja de papel).',
+              faseInicial: '5 min • Caminata rítmica imitando secuencias de percusión corporal en parejas.',
+              faseDesarrollo: '40 min • "La Isla de Papel": Desplazamientos sincronizados utilizando hojas de periódico; a cada señal se dobla la hoja a la mitad y las parejas/cuartetos deben ajustar su equilibrio y postura para no pisar fuera.',
+              faseFinal: '5 min • Relajación muscular progresiva y reflexión sobre la comunicación corporal.',
+              estrategias: 'Juegos cooperativos, Expresión corporal, Resolución de retos',
+              estilos: 'Resolución de problemas, Descubrimiento guiado',
+              materiales: 'Hojas de papel periódico reciclado, aros, reproductor de audio.'
+            },
+            {
+              numero: 4,
+              evaluacion: 'Percepción Sensorial No Visual y Confianza Colectiva: Se orienta mediante estímulos táctiles y auditivos; asume con responsabilidad la guía y cuidado de compañeros con ojos vendados.',
+              faseInicial: '5 min • Reconocimiento del espacio y acuerdos de seguridad física y empatía.',
+              faseDesarrollo: '40 min • "Lazarillos y Sonidos Guía": En parejas, un alumno con paliacate en los ojos es guiado únicamente mediante indicaciones auditivas o toques suaves en el hombro para superar un recorrido de conos y recolectar objetos.',
+              faseFinal: '5 min • Círculo de reflexión sobre la confianza depositada en el compañero y el cuidado mutuo.',
+              estrategias: 'Juegos sensoriales, Juegos cooperativos',
+              estilos: 'Descubrimiento guiado, Enseñanza recíproca',
+              materiales: 'Paliacates / vendas, conos, pelotas sonoras o cascabeles.'
+            },
+            {
+              numero: 5,
+              evaluacion: 'Resistencia Aeróbica y Estrategia Colectiva: Diseña y aplica soluciones grupales de evasión/captura, manteniendo el esfuerzo físico durante el juego continuo.',
+              faseInicial: '5 min • Trote dinámico con variantes de dirección y juego "La cadena móvil".',
+              faseDesarrollo: '40 min • "Invasión y Rescate Estratégico": Dos equipos mixtos (integrando A y B) diseñan tácticas para cruzar la zona rival, recuperar implementos y liberar compañeros sin detener el flujo motor.',
+              faseFinal: '5 min • Toma de frecuencia cardíaca en reposo, hidratación y análisis de la estrategia grupal.',
+              estrategias: 'Juegos de persecución, Juegos cooperativos, Juegos modificados',
+              estilos: 'Resolución de problemas, Libre exploración',
+              materiales: 'Conos, paliacates, aros, pelotas.'
+            },
+            {
+              numero: 6,
+              evaluacion: 'Equilibrio Dinámico Post-Giro y Coordinación Fina: Mantiene la estabilidad corporal tras rotaciones y reacciona con precisión motriz para atrapar bastones en movimiento.',
+              faseInicial: '5 min • Activación vestibular suave con giros controlados y apoyos unipodales.',
+              faseDesarrollo: '40 min • "Reloj de Bastones y Giros": En círculo, cada alumno sostiene un bastón vertical sobre el suelo; a la señal realizan un giro sobre su eje y avanzan rápidamente para atrapar el bastón del compañero antes de que caiga.',
+              faseFinal: '5 min • Estiramiento general y cierre valorativo de la Unidad 1.',
+              estrategias: 'Juegos motores, Juegos de reacción y equilibrio',
+              estilos: 'Asignación de tareas, Descubrimiento guiado',
+              materiales: 'Bastones de madera o plástico, aros, conos.'
+            }
+          ],
+          students: [
+            { id: 'st-1', name: 'Hernández López Mateo', scores: { s1: 4, s2: 4, s3: 3, s4: 4, s5: 4, s6: 4, trans: 4 }, obs: 'Liderazgo positivo integrando a sus compañeros.' },
+            { id: 'st-2', name: 'Gómez Sánchez Valentina', scores: { s1: 4, s2: 3, s3: 4, s4: 4, s5: 3, s6: 4, trans: 4 }, obs: 'Excelente coordinación y empatía en juegos sensoriales.' },
+            { id: 'st-3', name: 'Pérez Castellanos Santiago', scores: { s1: 3, s2: 3, s3: 3, s4: 3, s5: 4, s6: 3, trans: 3 }, obs: 'Buen desempeño aeróbico; consolidando respeto de turnos.' },
+            { id: 'st-4', name: 'Morales Ruiz Camila', scores: { s1: 2, s2: 3, s3: 3, s4: 4, s5: 3, s6: 3, trans: 3 }, obs: 'Avance notable a partir de la sesión 3 cooperativa.' },
+            { id: 'st-5', name: 'Vázquez Jiménez Leonardo', scores: { s1: 2, s2: 2, s3: 2, s4: 3, s5: 2, s6: 2, trans: 2 }, obs: 'Requiere recordatorios para integrarse con el grupo B.' }
+          ]
+        },
+        {
+          id: 'plan-secundaria-2',
+          escuela: 'ESCUELA SECUNDARIA GENERAL (PRÁCTICA DOCENTE)',
+          docentes: 'Docente en Formación ENLEF',
+          nivel: 'Secundaria',
+          fase: 'Fase 6 (1º, 2º y 3º Secundaria)',
+          grado: '1º / 2º',
+          grupo: 'A (38 Alumnos)',
+          mes: 'Octubre',
+          fecha: 'Semana de Práctica Intensiva',
+          unidad: 'Unidad 1 - Circuitos de Acción Motriz',
+          tiempo: '50 min',
+          campo: 'De lo Humano y Lo Comunitario',
+          contenido: 'Potencialidades cognitivas, expresivas, motrices, creativas y de relación.',
+          diagnostico: 'Grupo numeroso de 38 alumnos con material didáctico escaso (algunos palos de golf de plástico, aros pequeños y grandes, conos y colchonetas). Se requiere eliminar filas y tiempos muertos, evitando ejercicios gimnásticos de riesgo cervical o contacto físico en colchonetas.',
+          pda: 'Pone en práctica los elementos de la condición física en actividades motrices y recreativas, para reconocerlas como alternativas que fomentan el bienestar individual y colectivo.',
+          ejes: [1, 2, 5],
+          aspectosDestacados: 'El formato de 4 estaciones simultáneas eliminó por completo las filas pasivas; alta motivación en el reto del Cruce del Río.',
+          bapNotes: 'Cero contacto físico docente-alumno en colchonetas: se sustituyeron rodadas por el "Engrane Cooperativo" de abdomen a ras de piso.',
+          sessions: [
+            {
+              numero: 1,
+              evaluacion: 'Coordinación Segmentaria y Fuerza de Core (Colchonetas): Pasa el aro pequeño con los pies en círculo decúbito dorsal sin usar las manos y sin poner en riesgo su integridad física.',
+              faseInicial: '7 min • Movilidad articular dinámica en círculo general y trote continuo sin filas.',
+              faseDesarrollo: '38 min • Circuito Rotativo (7 min por estación): Estación 1 "El Engrane Cooperativo" en colchonetas; Estación 2 "Las Camillas Espaciales" con palos de golf; Estación 3 "El Cruce del Río" con aros grandes; Estación 4 "Gato de Velocidad" con aros pequeños y conos.',
+              faseFinal: '5 min • Estiramientos grupales y reflexión sobre cómo lograron que los 38 alumnos trabajaran al mismo tiempo.',
+              estrategias: 'Circuito de acción motriz, Juegos cooperativos, Resolución de problemas',
+              estilos: 'Asignación de tareas, Resolución de problemas',
+              materiales: 'Colchonetas, palos de golf de plástico, aros grandes y pequeños, conos.'
+            },
+            {
+              numero: 2,
+              evaluacion: 'Cooperación en Parejas y Tiempo de Compromiso Motor: Transporta el cono/aro aplicando tensión simétrica con los palos de golf y realiza trabajo activo en espejo mientras espera relevo.',
+              faseInicial: '6 min • Activación de tren superior e inferior mediante desplazamientos laterales en espejo.',
+              faseDesarrollo: '39 min • Progresión de "Las Camillas Espaciales" y "El Castillo Asediado" (roles rotativos cada 2 min entre defensores con palos de golf y atacantes en movimiento continuo).',
+              faseFinal: '5 min • Vuelta a la calma y autoevaluación del trabajo colaborativo.',
+              estrategias: 'Circuito de acción motriz, Juegos modificados de invasión',
+              estilos: 'Descubrimiento guiado, Enseñanza recíproca',
+              materiales: 'Palos de golf de plástico, conos, aros, pelotas de papel reciclado.'
+            }
+          ],
+          students: [
+            { id: 'sec-1', name: 'Aguilar Mendoza Alejandro', scores: { s1: 4, s2: 4, trans: 4 }, obs: 'Mantiene ritmo activo durante toda la rotación.' },
+            { id: 'sec-2', name: 'Cruz Domínguez Fernanda', scores: { s1: 4, s2: 3, trans: 4 }, obs: 'Gran estrategia en el Cruce del Río.' },
+            { id: 'sec-3', name: 'López Estrada Emiliano', scores: { s1: 3, s2: 3, trans: 3 }, obs: 'Participativo en la estación de palos de golf.' }
+          ]
+        }
+      ]
+    };
+
+    let appState = loadStateFromStorage();
+
+    function loadStateFromStorage() {
+      try {
+        const raw = localStorage.getItem(STORAGE_KEY);
+        if (!raw) {
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(INITIAL_STATE));
+          return JSON.parse(JSON.stringify(INITIAL_STATE));
+        }
+        const parsed = JSON.parse(raw);
+        // Asegurar que las 9 materias obligatorias estén presentes
+        DEFAULT_SUBJECTS.forEach(sub => {
+          if (!parsed.subjects.includes(sub)) parsed.subjects.push(sub);
+        });
+        return parsed;
+      } catch (e) {
+        console.error('Error cargando estado local:', e);
+        return JSON.parse(JSON.stringify(INITIAL_STATE));
+      }
+    }
+
+    function persistState() {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(appState));
+      syncToIndexedDB(appState);
+      updateBadges();
+    }
+
+    // Respaldo asíncrono secundario en IndexedDB para cumplir arquitectura PWA robusta
+    function syncToIndexedDB(data) {
+      if (!('indexedDB' in window)) return;
+      const req = indexedDB.open('ENLEF_NEM_INDEXEDDB', 1);
+      req.onupgradeneeded = function (e) {
+        const db = e.target.result;
+        if (!db.objectStoreNames.contains('stateStore')) {
+          db.createObjectStore('stateStore', { keyPath: 'id' });
+        }
+      };
+      req.onsuccess = function (e) {
+        const db = e.target.result;
+        const tx = db.transaction('stateStore', 'readwrite');
+        tx.objectStore('stateStore').put({ id: 'main_state', payload: data, updatedAt: new Date().toISOString() });
+      };
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById('toast-notification');
+      document.getElementById('toast-message').textContent = msg;
+      toast.classList.remove('hidden');
+      setTimeout(() => toast.classList.add('hidden'), 2800);
+    }
+
+    // =========================================================================
+    // NAVEGACIÓN ENTRE LOS 4 MÓDULOS
+    // =========================================================================
+    function switchTab(tabName) {
+      const modules = ['tareas', 'planeaciones', 'evaluacion', 'exportar'];
+      modules.forEach(m => {
+        const sec = document.getElementById(`module-${m}`);
+        const btn = document.getElementById(`tab-btn-${m}`);
+        if (m === tabName) {
+          sec.classList.remove('hidden');
+          btn.className = 'nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow';
+        } else {
+          sec.classList.add('hidden');
+          btn.className = 'nav-tab-btn flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700';
+        }
+      });
+
+      if (tabName === 'planeaciones') {
+        renderPlanSelector();
+        populatePlanForm(getActivePlan());
+      } else if (tabName === 'evaluacion') {
+        renderEvaluationModule();
+      } else if (tabName === 'exportar') {
+        renderPrintPreview();
+      }
+      lucide.createIcons();
+    }
+
+    function updateBadges() {
+      const pendingCount = appState.tasks.filter(t => t.status !== 'Completada').length;
+      document.getElementById('badge-count-tareas').textContent = pendingCount;
+      document.getElementById('subjects-count').textContent = appState.subjects.length;
+    }
+
+    // =========================================================================
+    // MÓDULO 1: GESTOR DE TAREAS Y ASISTENTE ESTRUCTURADOR APA
+    // =========================================================================
+    function populateSubjectsSelects() {
+      const taskSelect = document.getElementById('task-subject');
+      const filterSelect = document.getElementById('filter-task-subject');
+      const currentFilter = filterSelect.value || 'ALL';
+
+      taskSelect.innerHTML = appState.subjects
+        .map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`)
+        .join('');
+
+      filterSelect.innerHTML = `<option value="ALL">Todas las asignaturas (${appState.subjects.length})</option>` +
+        appState.subjects.map(s => `<option value="${escapeHtml(s)}">${escapeHtml(s)}</option>`).join('');
+      filterSelect.value = currentFilter;
+      updateBadges();
+    }
+
+    function generateAcademicOutlineFromForm() {
+      const subject = document.getElementById('task-subject').value;
+      const title = document.getElementById('task-title').value.trim() || 'Propuesta Académica de Intervención en Educación Física';
+      const instructions = document.getElementById('task-instructions').value.trim() || 'Análisis teórico-práctico aplicado al contexto escolar.';
+
+      // Enfoque específico según la asignatura de la ENLEF seleccionada
+      const subjectApproaches = {
+        'Ética e identidad profesional': 'el compromiso deontológico del educador físico, el cuidado de la integridad del alumnado y la construcción de la identidad docente normalista',
+        'Desarrollo socioemocional y aprendizaje': 'la regulación emocional, la empatía motriz, la superación de subgrupos y la convivencia escolar pacífica desde la corporeidad',
+        'Gestión del centro educativo': 'la organización escolar, el aprovechamiento óptimo de espacios e infraestructura deportiva limitada y la vinculación con la comunidad',
+        'Investigación e innovación de la práctica docente': 'la sistematización del diagnóstico pedagógico, la investigación-acción en el patio escolar y el diseño de estrategias innovadoras',
+        'Promoción y prevención de la salud': 'el fomento de estilos de vida activos, el fortalecimiento de capacidades físico-motrices y la higiene postural segura',
+        'Estrategias alternativas para la inclusión': 'la atención a la diversidad, la minimización de Barreras para el Aprendizaje y la Participación (BAP) y las variantes motrices universales',
+        'La actividad motriz en el medio acuático': 'la familiarización acuática, la flotación, la propulsión segura y las medidas de prevención y salvamento',
+        'Inglés: producción de textos académicos en lengua extranjera': 'la estructuración de un Abstract académico (Introduction, Methodology, Pedagogical Proposal & Conclusions) con vocabulario técnico de Physical Education',
+        'Taller deportivo': 'la iniciación deportiva formativa, el uso de juegos modificados y el desarrollo táctico-cooperativo sin exclusión'
+      };
+
+      const specificFocus = subjectApproaches[subject] || 'la intervención pedagógica fundamentada en el marco curricular de la Nueva Escuela Mexicana';
+
+      const outline = `===================================================================
+BOSQUEJO ACADÉMICO ESTRUCTURADO - ENLEF "PEDRO REYNOL OZUNA HENNING"
+===================================================================
+ASIGNATURA: ${subject.toUpperCase()}
+TÍTULO DEL TRABAJO: ${title}
+
+1. INTRODUCCIÓN
+   - Presentación del tema y su relevancia en la formación inicial del Licenciado en Educación Física.
+   - Contextualización dentro del marco de la Nueva Escuela Mexicana (Campo Formativo: De lo Humano y lo Comunitario).
+   - Propósito central derivado de la consigna: "${instructions}".
+
+2. JUSTIFICACIÓN PEDAGÓGICA Y NORMATIVA
+   - Fundamentación teórica centrada en ${specificFocus}.
+   - Vinculación con los Ejes Articuladores (Inclusión, Vida Saludable, Pensamiento Crítico e Igualdad de Género).
+   - Impacto esperado en el tiempo de compromiso motor y la convivencia del estudiantado.
+
+3. DESARROLLO DE LA PROPUESTA / ANÁLISIS CRÍTICO
+   3.1. Diagnóstico y planteamiento del problema práctico en patio/aula.
+   3.2. Diseño metodológico o secuencia de actividades (Fase Inicial, Desarrollo y Final).
+   3.3. Estrategias didácticas y estilos de enseñanza aplicados (Descubrimiento guiado, Resolución de problemas, Juegos cooperativos).
+   3.4. Adecuaciones curriculares, seguridad física y recursos materiales (convencionales o reciclados).
+
+4. CONCLUSIONES Y REFLEXIÓN DE LA PRÁCTICA DOCENTE
+   - Síntesis de los aprendizajes logrados y retos detectados durante la intervención.
+   - Proyección de mejora para futuras jornadas de práctica profesional.
+
+5. REFERENCIAS BIBLIOGRÁFICAS SUGERIDAS (FORMATO APA 7ma EDICIÓN)
+   - Castañer, M., & Camerino, O. (2006). Manifestaciones básicas de la motricidad. Universitat de Lleida.
+   - Devís, J., & Peiró, C. (2007). Nuevas perspectivas curriculares en Educación Física: la salud y los juegos modificados. INDE.
+   - Secretaría de Educación Pública [SEP]. (2022). Plan de Estudio para la Educación Preescolar, Primaria y Secundaria 2022. Dirección General de Desarrollo Curricular.`;
+
+      const box = document.getElementById('task-outline-preview-box');
+      const textarea = document.getElementById('task-outline-text');
+      textarea.value = outline;
+      box.classList.remove('hidden');
+      showToast('Estructura académica APA generada');
+    }
+
+    function copyOutlineText() {
+      const textarea = document.getElementById('task-outline-text');
+      navigator.clipboard.writeText(textarea.value);
+      showToast('Bosquejo copiado al portapapeles');
+    }
+
+    function saveTask(e) {
+      e.preventDefault();
+      const id = document.getElementById('task-id').value;
+      const subject = document.getElementById('task-subject').value;
+      const title = document.getElementById('task-title').value.trim();
+      const date = document.getElementById('task-date').value;
+      const priority = document.getElementById('task-priority').value;
+      const instructions = document.getElementById('task-instructions').value.trim();
+      const outline = document.getElementById('task-outline-text').value.trim();
+
+      if (id) {
+        const idx = appState.tasks.findIndex(t => t.id === id);
+        if (idx > -1) {
+          appState.tasks[idx] = { ...appState.tasks[idx], subject, title, date, priority, instructions, outline };
+        }
+      } else {
+        appState.tasks.unshift({
+          id: 'task-' + Date.now(),
+          subject,
+          title,
+          date,
+          priority,
+          status: 'Pendiente',
+          instructions,
+          outline
+        });
+      }
+
+      persistState();
+      resetTaskForm();
+      renderTasks();
+      showToast('Tarea guardada en tu agenda ENLEF');
+    }
+
+    function resetTaskForm() {
+      document.getElementById('task-form').reset();
+      document.getElementById('task-id').value = '';
+      document.getElementById('task-outline-text').value = '';
+      document.getElementById('task-outline-preview-box').classList.add('hidden');
+      document.getElementById('task-submit-label').textContent = 'Guardar Tarea';
+      document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
+    }
+
+    function renderTasks() {
+      const container = document.getElementById('tasks-container');
+      const subjectFilter = document.getElementById('filter-task-subject').value;
+      const statusFilter = document.getElementById('filter-task-status').value;
+
+      const filtered = appState.tasks.filter(t => {
+        const matchSub = subjectFilter === 'ALL' || t.subject === subjectFilter;
+        const matchSt = statusFilter === 'ALL' || t.status === statusFilter;
+        return matchSub && matchSt;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div class="col-span-full text-center py-10 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-slate-500 text-sm">
+            No hay tareas registradas con los filtros seleccionados.
+          </div>`;
+        return;
+      }
+
+      const priorityColors = {
+        Alta: 'bg-rose-100 text-rose-800 border-rose-200',
+        Media: 'bg-amber-100 text-amber-800 border-amber-200',
+        Baja: 'bg-emerald-100 text-emerald-800 border-emerald-200'
+      };
+
+      container.innerHTML = filtered.map(t => `
+        <div class="rounded-2xl border ${t.status === 'Completada' ? 'bg-slate-50 border-slate-200 opacity-80' : 'bg-white border-slate-200 shadow-sm'} p-4 flex flex-col justify-between gap-3">
+          <div>
+            <div class="flex items-center justify-between gap-2 mb-2">
+              <span class="text-[11px] font-bold px-2.5 py-0.5 rounded-full border ${priorityColors[t.priority] || priorityColors.Media}">
+                Prioridad ${t.priority}
+              </span>
+              <span class="text-xs font-semibold text-slate-500 flex items-center gap-1">
+                <i data-lucide="calendar" class="w-3.5 h-3.5"></i> ${t.date}
+              </span>
+            </div>
+            <span class="inline-block text-[11px] font-bold uppercase tracking-wide text-sky-700 bg-sky-50 px-2 py-0.5 rounded mb-1">
+              ${escapeHtml(t.subject)}
+            </span>
+            <h4 class="font-bold text-slate-900 text-sm ${t.status === 'Completada' ? 'line-through text-slate-500' : ''}">
+              ${escapeHtml(t.title)}
+            </h4>
+            <p class="text-xs text-slate-600 mt-1.5 line-clamp-3">${escapeHtml(t.instructions)}</p>
+
+            ${t.outline ? `
+              <details class="mt-3 bg-slate-900 text-slate-100 rounded-xl p-2.5 text-xs">
+                <summary class="cursor-pointer font-semibold text-amber-400">Ver Desglose Académico APA</summary>
+                <pre class="mt-2 whitespace-pre-wrap font-mono text-[11px] text-slate-200 max-h-48 overflow-y-auto">${escapeHtml(t.outline)}</pre>
+              </details>
+            ` : ''}
+          </div>
+
+          <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
+            <select onchange="changeTaskStatus('${t.id}', this.value)" class="text-xs font-semibold rounded-lg border border-slate-300 px-2 py-1 bg-slate-50">
+              <option value="Pendiente" ${t.status === 'Pendiente' ? 'selected' : ''}>⏳ Pendiente</option>
+              <option value="En Progreso" ${t.status === 'En Progreso' ? 'selected' : ''}>⚡ En Progreso</option>
+              <option value="Completada" ${t.status === 'Completada' ? 'selected' : ''}>✅ Completada</option>
+            </select>
+
+            <div class="flex items-center gap-1">
+              <button onclick="editTask('${t.id}')" class="p-1.5 rounded-lg text-slate-600 hover:bg-slate-100" title="Editar / Generar Estructura">
+                <i data-lucide="edit-3" class="w-4 h-4"></i>
+              </button>
+              <button onclick="deleteTask('${t.id}')" class="p-1.5 rounded-lg text-rose-600 hover:bg-rose-50" title="Eliminar">
+                <i data-lucide="trash-2" class="w-4 h-4"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function changeTaskStatus(id, newStatus) {
+      const task = appState.tasks.find(t => t.id === id);
+      if (task) {
+        task.status = newStatus;
+        persistState();
+        renderTasks();
+        showToast(`Estado actualizado a: ${newStatus}`);
+      }
+    }
+
+    function editTask(id) {
+      const task = appState.tasks.find(t => t.id === id);
+      if (!task) return;
+      document.getElementById('task-id').value = task.id;
+      document.getElementById('task-subject').value = task.subject;
+      document.getElementById('task-title').value = task.title;
+      document.getElementById('task-date').value = task.date;
+      document.getElementById('task-priority').value = task.priority;
+      document.getElementById('task-instructions').value = task.instructions;
+      document.getElementById('task-submit-label').textContent = 'Actualizar Tarea';
+
+      if (task.outline) {
+        document.getElementById('task-outline-text').value = task.outline;
+        document.getElementById('task-outline-preview-box').classList.remove('hidden');
+      } else {
+        document.getElementById('task-outline-preview-box').classList.add('hidden');
+      }
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function deleteTask(id) {
+      appState.tasks = appState.tasks.filter(t => t.id !== id);
+      persistState();
+      renderTasks();
+      showToast('Tarea eliminada');
+    }
+
+    // Modal de asignaturas
+    function openSubjectsModal() {
+      renderSubjectsModalList();
+      const modal = document.getElementById('subjects-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeSubjectsModal() {
+      const modal = document.getElementById('subjects-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function renderSubjectsModalList() {
+      const ul = document.getElementById('subjects-modal-list');
+      ul.innerHTML = appState.subjects.map((s, idx) => `
+        <li class="py-2 flex items-center justify-between gap-2">
+          <span class="font-medium text-slate-800">${escapeHtml(s)}</span>
+          <button onclick="removeSubject(${idx})" class="text-xs text-rose-600 hover:underline">Eliminar</button>
+        </li>
+      `).join('');
+    }
+
+    function addCustomSubject(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-subject-input');
+      const val = input.value.trim();
+      if (val && !appState.subjects.includes(val)) {
+        appState.subjects.push(val);
+        persistState();
+        populateSubjectsSelects();
+        renderSubjectsModalList();
+        input.value = '';
+        showToast('Asignatura agregada al catálogo');
+      }
+    }
+
+    function removeSubject(idx) {
+      if (appState.subjects.length <= 1) return;
+      appState.subjects.splice(idx, 1);
+      persistState();
+      populateSubjectsSelects();
+      renderSubjectsModalList();
+    }
+
+    // =========================================================================
+    // MÓDULO 2: PLANTILLA MAESTRA DE PLANEACIÓN (NEM / ENLEF)
+    // =========================================================================
+    function getActivePlan() {
+      let plan = appState.plans.find(p => p.id === appState.activePlanId);
+      if (!plan) {
+        plan = appState.plans[0];
+        appState.activePlanId = plan.id;
+      }
+      return plan;
+    }
+
+    function renderPlanSelector() {
+      const sel = document.getElementById('plan-selector');
+      sel.innerHTML = appState.plans.map(p => `
+        <option value="${p.id}" ${p.id === appState.activePlanId ? 'selected' : ''}>
+          ${escapeHtml(p.escuela)} — ${escapeHtml(p.grado)} ${escapeHtml(p.grupo)} (${p.sessions.length} sesiones)
+        </option>
+      `).join('');
+    }
+
+    function loadSelectedPlan(planId) {
+      appState.activePlanId = planId;
+      persistState();
+      populatePlanForm(getActivePlan());
+      showToast('Planeación cargada');
+    }
+
+    function renderEjesCheckboxes(selectedIds = []) {
+      const container = document.getElementById('ejes-container');
+      container.innerHTML = EJES_ARTICULADORES.map(eje => {
+        const checked = selectedIds.includes(eje.id);
+        return `
+          <label class="cursor-pointer flex items-center gap-2.5 p-2.5 rounded-xl border ${checked ? 'bg-sky-50 border-sky-400 text-sky-950 font-semibold' : 'bg-slate-50 border-slate-200 text-slate-700'} text-xs transition">
+            <input type="checkbox" name="plan-eje" value="${eje.id}" ${checked ? 'checked' : ''} onchange="updateEjesVisuals()" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500" />
+            <span>${escapeHtml(eje.nombre)}</span>
+          </label>
+        `;
+      }).join('');
+    }
+
+    function updateEjesVisuals() {
+      const selected = Array.from(document.querySelectorAll('input[name="plan-eje"]:checked')).map(cb => Number(cb.value));
+      renderEjesCheckboxes(selected);
+    }
+
+    function populatePlanForm(plan) {
+      document.getElementById('plan-escuela').value = plan.escuela || '';
+      document.getElementById('plan-docentes').value = plan.docentes || '';
+      document.getElementById('plan-nivel').value = plan.nivel || 'Primaria';
+      document.getElementById('plan-fase').value = plan.fase || 'Fase 4 (3º y 4º Primaria)';
+      document.getElementById('plan-grado').value = plan.grado || '';
+      document.getElementById('plan-grupo').value = plan.grupo || '';
+      document.getElementById('plan-mes').value = plan.mes || '';
+      document.getElementById('plan-fecha').value = plan.fecha || '';
+      document.getElementById('plan-unidad').value = plan.unidad || '';
+      document.getElementById('plan-num-sesiones').value = plan.sessions.length;
+      document.getElementById('plan-tiempo').value = plan.tiempo || '50 min';
+      document.getElementById('plan-campo').value = plan.campo || '';
+      document.getElementById('plan-contenido').value = plan.contenido || '';
+      document.getElementById('plan-diagnostico').value = plan.diagnostico || '';
+      document.getElementById('plan-pda').value = plan.pda || '';
+
+      renderEjesCheckboxes(plan.ejes || []);
+      renderSessionsBlocks(plan.sessions || []);
+    }
+
+    function renderSessionsBlocks(sessions) {
+      const container = document.getElementById('sessions-container');
+      document.getElementById('plan-num-sesiones').value = sessions.length;
+
+      container.innerHTML = sessions.map((s, idx) => `
+        <div class="session-card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-session-idx="${idx}">
+          <div class="bg-slate-100 border-b border-slate-200 px-5 py-3 flex items-center justify-between">
+            <div class="flex items-center gap-2">
+              <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-extrabold text-xs">SESIÓN ${idx + 1}</span>
+              <span class="text-xs font-semibold text-slate-600">Matriz de Dosificación por Sesión</span>
+            </div>
+            <button type="button" onclick="removeSessionBlock(${idx})" class="text-xs text-rose-600 hover:bg-rose-50 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar Sesión
+            </button>
+          </div>
+
+          <div class="p-4 sm:p-5 space-y-4">
+            <!-- Evaluación de la sesión -->
+            <div>
+              <label class="block text-xs font-bold uppercase text-sky-800 mb-1">
+                Criterio / Indicador de Evaluación de la Sesión ${idx + 1} (Técnico-Motriz y Actitudinal) *
+              </label>
+              <input type="text" required class="sess-evaluacion w-full rounded-xl border border-sky-300 bg-sky-50/40 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-sky-500" value="${escapeHtml(s.evaluacion)}" placeholder="Ej. Control Óculo-Pedal y Convivencia en Relevos: Conduce la pelota con los pies..." />
+            </div>
+
+            <!-- Tres Fases de la Clase -->
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase Inicial (ej. 5-10 min) *</label>
+                <textarea rows="4" required class="sess-inicial w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm" placeholder="Tiempo + Calentamiento / Movilidad articular / Activación lúdica...">${escapeHtml(s.faseInicial)}</textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase de Desarrollo (ej. 35-40 min) *</label>
+                <textarea rows="4" required class="sess-desarrollo w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm" placeholder="Tiempo + Actividades centrales, estaciones, circuitos, variantes inclusivas...">${escapeHtml(s.faseDesarrollo)}</textarea>
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase Final (ej. 5-10 min) *</label>
+                <textarea rows="4" required class="sess-final w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm" placeholder="Tiempo + Vuelta a la calma, estiramientos y reflexión metacognitiva...">${escapeHtml(s.faseFinal)}</textarea>
+              </div>
+            </div>
+
+            <!-- Estrategias, Estilos y Materiales -->
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Estrategias Didácticas *</label>
+                <input type="text" required class="sess-estrategias w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estrategias)}" placeholder="Juegos cooperativos, relevos, motores, sensoriales..." />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Estilos de Enseñanza *</label>
+                <input type="text" required class="sess-estilos w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estilos)}" placeholder="Mando directo, Descubrimiento guiado, Resolución de problemas..." />
+              </div>
+              <div>
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Recursos Materiales *</label>
+                <input type="text" required class="sess-materiales w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.materiales)}" placeholder="Conos, aros, pelotas, paliacates, colchonetas..." />
+              </div>
+            </div>
+          </div>
+        </div>
+      `).join('');
+
+      lucide.createIcons();
+    }
+
+    function collectSessionsFromDOM() {
+      const cards = Array.from(document.querySelectorAll('.session-card'));
+      return cards.map((card, idx) => ({
+        numero: idx + 1,
+        evaluacion: card.querySelector('.sess-evaluacion').value.trim(),
+        faseInicial: card.querySelector('.sess-inicial').value.trim(),
+        faseDesarrollo: card.querySelector('.sess-desarrollo').value.trim(),
+        faseFinal: card.querySelector('.sess-final').value.trim(),
+        estrategias: card.querySelector('.sess-estrategias').value.trim(),
+        estilos: card.querySelector('.sess-estilos').value.trim(),
+        materiales: card.querySelector('.sess-materiales').value.trim()
+      }));
+    }
+
+    function addSessionBlock() {
+      const currentSessions = collectSessionsFromDOM();
+      const nextNum = currentSessions.length + 1;
+      currentSessions.push({
+        numero: nextNum,
+        evaluacion: `Indicador Sesión ${nextNum}: Ejecuta patrones básicos de movimiento con control y colabora respetando acuerdos de convivencia.`,
+        faseInicial: '5 min • Movilidad articular y activación lúdica grupal.',
+        faseDesarrollo: '40 min • Secuencia motriz principal con variantes de inclusión y participación simultánea.',
+        faseFinal: '5 min • Vuelta a la calma, respiración y reflexión grupal.',
+        estrategias: 'Juegos motores, Juegos cooperativos',
+        estilos: 'Descubrimiento guiado, Asignación de tareas',
+        materiales: 'Conos, aros, pelotas.'
+      });
+      renderSessionsBlocks(currentSessions);
+      showToast(`Sesión ${nextNum} agregada`);
+    }
+
+    function removeSessionBlock(idx) {
+      const currentSessions = collectSessionsFromDOM();
+      if (currentSessions.length <= 1) {
+        showToast('La planeación debe tener al menos 1 sesión');
+        return;
+      }
+      currentSessions.splice(idx, 1);
+      renderSessionsBlocks(currentSessions);
+    }
+
+    function saveCurrentPlan(e) {
+      if (e) e.preventDefault();
+      const plan = getActivePlan();
+      plan.escuela = document.getElementById('plan-escuela').value.trim();
+      plan.docentes = document.getElementById('plan-docentes').value.trim();
+      plan.nivel = document.getElementById('plan-nivel').value;
+      plan.fase = document.getElementById('plan-fase').value;
+      plan.grado = document.getElementById('plan-grado').value.trim();
+      plan.grupo = document.getElementById('plan-grupo').value.trim();
+      plan.mes = document.getElementById('plan-mes').value.trim();
+      plan.fecha = document.getElementById('plan-fecha').value.trim();
+      plan.unidad = document.getElementById('plan-unidad').value.trim();
+      plan.tiempo = document.getElementById('plan-tiempo').value.trim();
+      plan.campo = document.getElementById('plan-campo').value.trim();
+      plan.contenido = document.getElementById('plan-contenido').value.trim();
+      plan.diagnostico = document.getElementById('plan-diagnostico').value.trim();
+      plan.pda = document.getElementById('plan-pda').value.trim();
+      plan.ejes = Array.from(document.querySelectorAll('input[name="plan-eje"]:checked')).map(cb => Number(cb.value));
+      plan.sessions = collectSessionsFromDOM();
+
+      persistState();
+      renderPlanSelector();
+      showToast('Planeación guardada correctamente');
+    }
+
+    function createNewBlankPlan() {
+      const newId = 'plan-' + Date.now();
+      const newPlan = {
+        id: newId,
+        escuela: 'NUEVA ESCUELA DE PRÁCTICA',
+        docentes: 'Docente en Formación ENLEF',
+        nivel: 'Primaria',
+        fase: 'Fase 4 (3º y 4º Primaria)',
+        grado: '4º',
+        grupo: 'A',
+        mes: 'Octubre',
+        fecha: 'Del 19 al 30 de Octubre',
+        unidad: 'Unidad 1',
+        tiempo: '50 min',
+        campo: 'De lo Humano y Lo Comunitario',
+        contenido: 'Capacidades y habilidades motrices.',
+        diagnostico: 'Grupo participativo que requiere fortalecer la coordinación motriz y el trabajo cooperativo incluyente.',
+        pda: 'Pone en práctica sus habilidades motrices en situaciones lúdicas, individuales y colectivas, para valorar la diversidad de posibilidades que contribuyen a mejorar su actuación.',
+        ejes: [1, 5],
+        aspectosDestacados: '',
+        bapNotes: '',
+        sessions: [
+          {
+            numero: 1,
+            evaluacion: 'Coordina desplazamientos y lanzamientos respetando las reglas y turnos del equipo.',
+            faseInicial: '5 min • Calentamiento cefalocaudal y juego de persecución.',
+            faseDesarrollo: '40 min • Circuito motriz cooperativo por estaciones.',
+            faseFinal: '5 min • Vuelta a la calma y retroalimentación.',
+            estrategias: 'Juegos cooperativos, Circuito de acción motriz',
+            estilos: 'Asignación de tareas, Descubrimiento guiado',
+            materiales: 'Conos, aros, pelotas.'
+          }
+        ],
+        students: [
+          { id: 'st-' + Date.now(), name: 'Alumno Ejemplo 1', scores: { s1: 4, trans: 4 }, obs: '' }
+        ]
+      };
+      appState.plans.push(newPlan);
+      appState.activePlanId = newId;
+      persistState();
+      renderPlanSelector();
+      populatePlanForm(newPlan);
+      showToast('Nueva planeación creada');
+    }
+
+    function duplicateCurrentPlan() {
+      saveCurrentPlan();
+      const orig = getActivePlan();
+      const copy = JSON.parse(JSON.stringify(orig));
+      copy.id = 'plan-' + Date.now();
+      copy.escuela = orig.escuela + ' (Copia)';
+      appState.plans.push(copy);
+      appState.activePlanId = copy.id;
+      persistState();
+      renderPlanSelector();
+      populatePlanForm(copy);
+      showToast('Planeación duplicada');
+    }
+
+    function deleteCurrentPlan() {
+      if (appState.plans.length <= 1) {
+        showToast('Debes conservar al menos una planeación activa');
+        return;
+      }
+      appState.plans = appState.plans.filter(p => p.id !== appState.activePlanId);
+      appState.activePlanId = appState.plans[0].id;
+      persistState();
+      renderPlanSelector();
+      populatePlanForm(getActivePlan());
+      showToast('Planeación eliminada');
+    }
+
+    function suggestContentByFase(faseVal) {
+      const presets = {
+        'Fase 2 (Preescolar)': {
+          contenido: 'Posibilidades de movimiento en diferentes espacios, para favorecer las habilidades motrices.',
+          pda: 'Combina movimientos que implican el control, equilibrio y estabilidad del cuerpo al realizar acciones individuales, en parejas o en colectivo.'
+        },
+        'Fase 3 (1º y 2º Primaria)': {
+          contenido: 'Capacidades y habilidades motrices.',
+          pda: 'Combina diversos patrones básicos de movimiento para actuar con base en las características de cada juego o situación.'
+        },
+        'Fase 4 (3º y 4º Primaria)': {
+          contenido: 'Capacidades y habilidades motrices.',
+          pda: 'Pone en práctica sus habilidades motrices en situaciones lúdicas, individuales y colectivas, para valorar la diversidad de posibilidades que contribuyen a mejorar su actuación.'
+        },
+        'Fase 5 (5º y 6º Primaria)': {
+          contenido: 'Potencialidades cognitivas, expresivas, motrices, creativas y de relación.',
+          pda: 'Diseña propuestas de actividades lúdicas y expresivas a partir de sus intereses, capacidades y habilidades, para fortalecer su imagen corporal.'
+        },
+        'Fase 6 (1º, 2º y 3º Secundaria)': {
+          contenido: 'Potencialidades cognitivas, expresivas, motrices, creativas y de relación.',
+          pda: 'Pone en práctica los elementos de la condición física en actividades motrices y recreativas, para reconocerlas como alternativas que fomentan el bienestar individual y colectivo.'
+        }
+      };
+      if (presets[faseVal]) {
+        document.getElementById('plan-contenido').value = presets[faseVal].contenido;
+        document.getElementById('plan-pda').value = presets[faseVal].pda;
+        showToast('Contenido y PDA sugeridos para ' + faseVal);
+      }
+    }
+
+    function fillPresetPDA() {
+      const faseVal = document.getElementById('plan-fase').value;
+      suggestContentByFase(faseVal);
+    }
+
+    function saveAndGoToEvaluation() {
+      saveCurrentPlan();
+      switchTab('evaluacion');
+    }
+
+    function saveAndGoToPrint(mode) {
+      if (!document.getElementById('module-planeaciones').classList.contains('hidden')) {
+        saveCurrentPlan();
+      }
+      appState.printMode = mode;
+      switchTab('exportar');
+    }
+
+    // =========================================================================
+    // MÓDULO 3: ESCALA DE APRECIACIÓN FORMATIVA (EVALUACIÓN EN PATIO)
+    // =========================================================================
+    function renderEvaluationModule() {
+      const plan = getActivePlan();
+      document.getElementById('eval-header-school').textContent = plan.escuela;
+      document.getElementById('eval-header-meta').textContent =
+        `Docente(s): ${plan.docentes} • ${plan.fase} • Grado y Grupo: ${plan.grado} "${plan.grupo}" • ${plan.unidad} (${plan.sessions.length} Sesiones)`;
+
+      document.getElementById('eval-aspectos-destacados').value = plan.aspectosDestacados || '';
+      document.getElementById('eval-bap-notes').value = plan.bapNotes || '';
+
+      // Renderizar tarjetas de indicadores por sesión + indicador transversal
+      const indList = document.getElementById('eval-indicators-list');
+      const sessionCardsHtml = plan.sessions.map((s, idx) => `
+        <div class="p-3 rounded-xl bg-slate-50 border border-slate-200 flex items-start gap-2.5">
+          <span class="px-2 py-0.5 rounded bg-slate-900 text-white font-bold text-xs shrink-0">S${idx + 1}</span>
+          <p class="text-xs text-slate-700 leading-relaxed">${escapeHtml(s.evaluacion)}</p>
+        </div>
+      `).join('');
+
+      const transversalCardHtml = `
+        <div class="p-3 rounded-xl bg-sky-50 border border-sky-200 flex items-start gap-2.5">
+          <span class="px-2 py-0.5 rounded bg-sky-700 text-white font-bold text-xs shrink-0">Transversal</span>
+          <p class="text-xs text-sky-950 leading-relaxed"><strong>Integración Grupal e Inclusión:</strong> Convive e interactúa armónicamente en equipos mixtos y cooperativos respetando la diversidad.</p>
+        </div>
+      `;
+      indList.innerHTML = sessionCardsHtml + transversalCardHtml;
+
+      renderEvaluationTable(plan);
+    }
+
+    function renderEvaluationTable(plan) {
+      const theadRow = document.getElementById('eval-table-head-row');
+      const tbody = document.getElementById('eval-table-body');
+
+      const sessionHeaders = plan.sessions.map((s, idx) =>
+        `<th class="px-2 py-3 text-center whitespace-nowrap" title="${escapeHtml(s.evaluacion)}">S${idx + 1}</th>`
+      ).join('');
+
+      theadRow.innerHTML = `
+        <th class="px-3 py-3 w-10 text-center">N°</th>
+        <th class="px-3 py-3 min-w-[190px]">Nombre del Alumno(a)</th>
+        ${sessionHeaders}
+        <th class="px-2 py-3 text-center whitespace-nowrap bg-sky-950" title="Integración Grupal Transversal">Integración</th>
+        <th class="px-3 py-3 text-center whitespace-nowrap">Promedio / Nivel</th>
+        <th class="px-3 py-3 min-w-[160px]">Observaciones / Ajustes</th>
+        <th class="px-2 py-3 text-center">Acción</th>
+      `;
+
+      if (!plan.students || plan.students.length === 0) {
+        tbody.innerHTML = `
+          <tr>
+            <td colspan="${plan.sessions.length + 5}" class="text-center py-8 text-slate-500 text-sm">
+              No hay alumnos en la lista. Usa el botón "Cargar Lista Rápida" o agrega un alumno arriba.
+            </td>
+          </tr>`;
+        return;
+      }
+
+      tbody.innerHTML = plan.students.map((st, idx) => {
+        const stats = calculateStudentStats(st, plan.sessions.length);
+        const sessionCells = plan.sessions.map((s, sIdx) => {
+          const key = `s${sIdx + 1}`;
+          const val = st.scores?.[key] || 4;
+          return `<td class="px-1.5 py-2 text-center">${renderScoreButton(st.id, key, val)}</td>`;
+        }).join('');
+
+        const transVal = st.scores?.trans || 4;
+
+        return `
+          <tr class="hover:bg-slate-50 transition">
+            <td class="px-3 py-2 text-center font-bold text-slate-500 text-xs">${idx + 1}</td>
+            <td class="px-3 py-2 font-semibold text-slate-900 text-xs sm:text-sm">${escapeHtml(st.name)}</td>
+            ${sessionCells}
+            <td class="px-1.5 py-2 text-center bg-sky-50/40">${renderScoreButton(st.id, 'trans', transVal)}</td>
+            <td class="px-3 py-2 text-center whitespace-nowrap">
+              <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-extrabold ${stats.badgeClass}">
+                ${stats.avg} • ${stats.label}
+              </span>
+            </td>
+            <td class="px-2 py-2">
+              <input type="text" value="${escapeHtml(st.obs || '')}" onchange="updateStudentObs('${st.id}', this.value)" placeholder="Nota individual..." class="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-sky-500 focus:outline-none" />
+            </td>
+            <td class="px-2 py-2 text-center">
+              <button onclick="removeStudent('${st.id}')" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Eliminar alumno">
+                <i data-lucide="user-minus" class="w-4 h-4"></i>
+              </button>
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      lucide.createIcons();
+    }
+
+    function renderScoreButton(studentId, scoreKey, val) {
+      const config = {
+        4: { code: 'D', num: 4, cls: 'bg-emerald-600 text-white border-emerald-700' },
+        3: { code: 'S', num: 3, cls: 'bg-sky-600 text-white border-sky-700' },
+        2: { code: 'EP', num: 2, cls: 'bg-amber-500 text-slate-950 border-amber-600' },
+        1: { code: 'RA', num: 1, cls: 'bg-rose-600 text-white border-rose-700' }
+      }[val] || { code: 'D', num: 4, cls: 'bg-emerald-600 text-white' };
+
+      return `
+        <button type="button" onclick="cycleStudentScore('${studentId}', '${scoreKey}')" class="eval-btn px-2.5 py-1.5 rounded-xl font-extrabold text-xs border shadow-sm ${config.cls}">
+          ${config.code} <span class="opacity-80 text-[10px]">(${config.num})</span>
+        </button>
+      `;
+    }
+
+    function cycleStudentScore(studentId, scoreKey) {
+      const plan = getActivePlan();
+      const student = plan.students.find(s => s.id === studentId);
+      if (!student) return;
+      if (!student.scores) student.scores = {};
+      const current = student.scores[scoreKey] || 4;
+      // Ciclo rápido táctil: 4 (D) -> 3 (S) -> 2 (EP) -> 1 (RA) -> 4 (D)
+      const next = current === 4 ? 3 : current === 3 ? 2 : current === 2 ? 1 : 4;
+      student.scores[scoreKey] = next;
+      persistState();
+      renderEvaluationTable(plan);
+    }
+
+    function calculateStudentStats(student, numSessions) {
+      let sum = 0;
+      let count = numSessions + 1; // Sesiones + Transversal
+      for (let i = 1; i <= numSessions; i++) {
+        sum += Number(student.scores?.[`s${i}`] || 4);
+      }
+      sum += Number(student.scores?.trans || 4);
+      const avgNum = sum / count;
+      const avg = avgNum.toFixed(1);
+
+      if (avgNum >= 3.5) {
+        return { sum, avg, label: 'Destacado (D)', short: 'D', badgeClass: 'bg-emerald-100 text-emerald-800 border border-emerald-300' };
+      } else if (avgNum >= 2.6) {
+        return { sum, avg, label: 'Satisfactorio (S)', short: 'S', badgeClass: 'bg-sky-100 text-sky-800 border border-sky-300' };
+      } else if (avgNum >= 1.8) {
+        return { sum, avg, label: 'En Proceso (EP)', short: 'EP', badgeClass: 'bg-amber-100 text-amber-900 border border-amber-300' };
+      } else {
+        return { sum, avg, label: 'Requiere Apoyo (RA)', short: 'RA', badgeClass: 'bg-rose-100 text-rose-800 border border-rose-300' };
+      }
+    }
+
+    function addSingleStudent(e) {
+      e.preventDefault();
+      const input = document.getElementById('new-student-name');
+      const name = input.value.trim();
+      if (!name) return;
+      const plan = getActivePlan();
+      if (!plan.students) plan.students = [];
+      const defaultScores = { trans: 4 };
+      plan.sessions.forEach((_, idx) => { defaultScores[`s${idx + 1}`] = 4; });
+
+      plan.students.push({
+        id: 'st-' + Date.now(),
+        name,
+        scores: defaultScores,
+        obs: ''
+      });
+      input.value = '';
+      persistState();
+      renderEvaluationTable(plan);
+      showToast('Alumno agregado a la escala');
+    }
+
+    function updateStudentObs(studentId, obsVal) {
+      const plan = getActivePlan();
+      const st = plan.students.find(s => s.id === studentId);
+      if (st) {
+        st.obs = obsVal.trim();
+        persistState();
+      }
+    }
+
+    function removeStudent(studentId) {
+      const plan = getActivePlan();
+      plan.students = plan.students.filter(s => s.id !== studentId);
+      persistState();
+      renderEvaluationTable(plan);
+    }
+
+    function saveEvaluationNotes() {
+      const plan = getActivePlan();
+      plan.aspectosDestacados = document.getElementById('eval-aspectos-destacados').value.trim();
+      plan.bapNotes = document.getElementById('eval-bap-notes').value.trim();
+      persistState();
+      showToast('Notas cualitativas guardadas');
+    }
+
+    // Modal de carga masiva de alumnos (30 a 40 alumnos)
+    function openBulkStudentsModal() {
+      const plan = getActivePlan();
+      document.getElementById('bulk-students-textarea').value = (plan.students || []).map(s => s.name).join('\n');
+      const modal = document.getElementById('bulk-students-modal');
+      modal.classList.remove('hidden');
+      modal.classList.add('flex');
+    }
+
+    function closeBulkStudentsModal() {
+      const modal = document.getElementById('bulk-students-modal');
+      modal.classList.add('hidden');
+      modal.classList.remove('flex');
+    }
+
+    function generateNumberedRoster(total) {
+      const lines = [];
+      for (let i = 1; i <= total; i++) {
+        lines.push(`Alumno(a) ${i < 10 ? '0' + i : i}`);
+      }
+      document.getElementById('bulk-students-textarea').value = lines.join('\n');
+    }
+
+    function saveBulkStudents() {
+      const raw = document.getElementById('bulk-students-textarea').value;
+      const names = raw.split('\n').map(n => n.replace(/^\d+[\.\-\)]\s*/, '').trim()).filter(Boolean);
+      if (names.length === 0) return;
+
+      const plan = getActivePlan();
+      plan.students = names.map((name, i) => {
+        const defaultScores = { trans: 4 };
+        plan.sessions.forEach((_, idx) => { defaultScores[`s${idx + 1}`] = 4; });
+        return {
+          id: 'st-' + Date.now() + '-' + i,
+          name,
+          scores: defaultScores,
+          obs: ''
+        };
+      });
+
+      persistState();
+      closeBulkStudentsModal();
+      renderEvaluationTable(plan);
+      showToast(`${names.length} alumnos cargados en la Escala de Apreciación`);
+    }
+
+    // =========================================================================
+    // MÓDULO 4: IMPRESIÓN OFICIAL (@media print) Y EXPORTACIÓN CSV / JSON
+    // =========================================================================
+    function setPrintMode(mode) {
+      appState.printMode = mode;
+      const btnPlan = document.getElementById('btn-mode-plan');
+      const btnEval = document.getElementById('btn-mode-eval');
+
+      if (mode === 'plan') {
+        btnPlan.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
+        btnEval.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
+      } else {
+        btnEval.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
+        btnPlan.className = 'px-3.5 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
+      }
+      renderPrintPreview();
+    }
+
+    function renderPrintPreview() {
+      const plan = getActivePlan();
+      const wrapper = document.getElementById('print-preview-wrapper');
+      const directPrint = document.getElementById('direct-print-area');
+
+      const htmlContent = appState.printMode === 'plan'
+        ? buildOfficialPlanPrintHTML(plan)
+        : buildOfficialEvalPrintHTML(plan);
+
+      wrapper.innerHTML = htmlContent;
+      directPrint.innerHTML = htmlContent;
+    }
+
+    function buildOfficialPlanPrintHTML(plan) {
+      const ejesRow = EJES_ARTICULADORES.map(e => {
+        const mark = (plan.ejes || []).includes(e.id) ? '☒' : '☐';
+        return `<td class="border border-black p-1.5 text-center text-[11px]"><strong>${mark}</strong> ${escapeHtml(e.nombre)}</td>`;
+      }).join('');
+
+      const sessionsRows = plan.sessions.map((s, idx) => `
+        <tr>
+          <td class="border border-black p-2 text-center font-bold">${idx + 1}</td>
+          <td class="border border-black p-2 text-xs">${escapeHtml(s.evaluacion)}</td>
+          <td class="border border-black p-2 text-xs">
+            <div class="mb-1.5"><strong>Inicial:</strong> ${escapeHtml(s.faseInicial)}</div>
+            <div class="mb-1.5"><strong>Desarrollo:</strong> ${escapeHtml(s.faseDesarrollo)}</div>
+            <div><strong>Final:</strong> ${escapeHtml(s.faseFinal)}</div>
+          </td>
+          <td class="border border-black p-2 text-xs">${escapeHtml(s.estrategias)}</td>
+          <td class="border border-black p-2 text-xs">${escapeHtml(s.estilos)}</td>
+          <td class="border border-black p-2 text-xs">${escapeHtml(s.materiales)}</td>
+        </tr>
+      `).join('');
+
+      return `
+        <div class="text-black max-w-full">
+          <div class="text-center border-b-2 border-black pb-2 mb-3">
+            <p class="text-xs font-bold uppercase">ESCUELA NORMAL DE LICENCIATURA EN EDUCACIÓN FÍSICA "PEDRO REYNOL OZUNA HENNING"</p>
+            <h2 class="text-base font-extrabold uppercase">${escapeHtml(plan.escuela)}</h2>
+            <p class="text-xs font-semibold">DOSIFICACIÓN DIDÁCTICA DE EDUCACIÓN FÍSICA • NUEVA ESCUELA MEXICANA</p>
+          </div>
+
+          <!-- Encabezado Administrativo -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-3">
+            <tbody>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5 w-1/6">ESCUELA:</th>
+                <td class="border border-black p-1.5 w-2/6 font-semibold">${escapeHtml(plan.escuela)}</td>
+                <th class="border border-black bg-slate-200 p-1.5 w-1/6">DOCENTE(S):</th>
+                <td class="border border-black p-1.5 w-2/6">${escapeHtml(plan.docentes)}</td>
+              </tr>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5">NIVEL Y FASE:</th>
+                <td class="border border-black p-1.5">${escapeHtml(plan.nivel)} / ${escapeHtml(plan.fase)}</td>
+                <th class="border border-black bg-slate-200 p-1.5">GRADO Y GRUPO:</th>
+                <td class="border border-black p-1.5 font-bold">${escapeHtml(plan.grado)} "${escapeHtml(plan.grupo)}"</td>
+              </tr>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5">TEMPORALIDAD:</th>
+                <td class="border border-black p-1.5">Mes: ${escapeHtml(plan.mes)} | Fecha: ${escapeHtml(plan.fecha)}</td>
+                <th class="border border-black bg-slate-200 p-1.5">UNIDAD / SESIONES:</th>
+                <td class="border border-black p-1.5">${escapeHtml(plan.unidad)} | ${plan.sessions.length} Sesiones (${escapeHtml(plan.tiempo)})</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Elementos del Programa Sintético -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-3">
+            <tbody>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5 w-1/5">CAMPO FORMATIVO:</th>
+                <td class="border border-black p-1.5 w-4/5 font-semibold">${escapeHtml(plan.campo)}</td>
+              </tr>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5">DIAGNÓSTICO:</th>
+                <td class="border border-black p-1.5">${escapeHtml(plan.diagnostico)}</td>
+              </tr>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5">CONTENIDO:</th>
+                <td class="border border-black p-1.5 font-semibold">${escapeHtml(plan.contenido)}</td>
+              </tr>
+              <tr>
+                <th class="border border-black bg-slate-200 p-1.5">PROCESOS DE DESARROLLO DE APRENDIZAJE (PDA):</th>
+                <td class="border border-black p-1.5">${escapeHtml(plan.pda)}</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Ejes Articuladores -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-3">
+            <thead>
+              <tr>
+                <th colspan="7" class="border border-black bg-slate-200 p-1.5 text-center uppercase">EJES ARTICULADORES (1 AL 7)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>${ejesRow}</tr>
+            </tbody>
+          </table>
+
+          <!-- Matriz de Sesiones -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-6">
+            <thead>
+              <tr class="bg-slate-200">
+                <th class="border border-black p-2 w-10 text-center">SESIÓN</th>
+                <th class="border border-black p-2 w-1/5">EVALUACIÓN</th>
+                <th class="border border-black p-2 w-2/5">FASES DE LA CLASE (INICIAL, DESARROLLO, FINAL)</th>
+                <th class="border border-black p-2">ESTRATEGIAS DIDÁCTICAS</th>
+                <th class="border border-black p-2">ESTILOS DE ENSEÑANZA</th>
+                <th class="border border-black p-2">RECURSOS MATERIALES</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${sessionsRows}
+            </tbody>
+          </table>
+
+          <div class="grid grid-cols-2 gap-8 mt-10 pt-6 text-center text-xs">
+            <div>
+              <div class="border-t border-black w-64 mx-auto pt-1 font-bold">${escapeHtml(plan.docentes)}</div>
+              <div class="text-slate-600">Docente(s) en Formación ENLEF</div>
+            </div>
+            <div>
+              <div class="border-t border-black w-64 mx-auto pt-1 font-bold">Vo. Bo. Titular / Asesor de Práctica</div>
+              <div class="text-slate-600">Firma y Sello Institucional</div>
+            </div>
+          </div>
+        </div>
+      `;
+    }
+
+    function buildOfficialEvalPrintHTML(plan) {
+      const indicatorsRows = plan.sessions.map((s, idx) => `
+        <tr>
+          <td class="border border-black p-1.5 text-center font-bold">${idx + 1}</td>
+          <td class="border border-black p-1.5 text-xs">${escapeHtml(s.evaluacion)}</td>
+        </tr>
+      `).join('');
+
+      const sHeaders = plan.sessions.map((_, idx) => `<th class="border border-black p-1.5 text-center">S${idx + 1}</th>`).join('');
+
+      const studentRows = (plan.students || []).map((st, idx) => {
+        const stats = calculateStudentStats(st, plan.sessions.length);
+        const cells = plan.sessions.map((_, sIdx) => {
+          const v = st.scores?.[`s${sIdx + 1}`] || 4;
+          const code = v === 4 ? 'D (4)' : v === 3 ? 'S (3)' : v === 2 ? 'EP (2)' : 'RA (1)';
+          return `<td class="border border-black p-1.5 text-center text-xs font-semibold">${code}</td>`;
+        }).join('');
+        const tv = st.scores?.trans || 4;
+        const tCode = tv === 4 ? 'D (4)' : tv === 3 ? 'S (3)' : tv === 2 ? 'EP (2)' : 'RA (1)';
+
+        return `
+          <tr>
+            <td class="border border-black p-1.5 text-center text-xs">${idx + 1}</td>
+            <td class="border border-black p-1.5 text-xs font-semibold">${escapeHtml(st.name)}</td>
+            ${cells}
+            <td class="border border-black p-1.5 text-center text-xs font-semibold">${tCode}</td>
+            <td class="border border-black p-1.5 text-center text-xs font-bold">${stats.avg} (${stats.short})</td>
+            <td class="border border-black p-1.5 text-xs">${escapeHtml(st.obs || '')}</td>
+          </tr>
+        `;
+      }).join('');
+
+      return `
+        <div class="text-black max-w-full">
+          <div class="text-center border-b-2 border-black pb-2 mb-3">
+            <h2 class="text-base font-extrabold uppercase">${escapeHtml(plan.escuela)}</h2>
+            <p class="text-xs font-bold">INSTRUMENTO DE EVALUACIÓN: ESCALA DE APRECIACIÓN FORMATIVA</p>
+            <p class="text-xs">Docente(s): ${escapeHtml(plan.docentes)} | ${escapeHtml(plan.fase)} | Grado y Grupo: ${escapeHtml(plan.grado)} "${escapeHtml(plan.grupo)}"</p>
+          </div>
+
+          <!-- Escala Estimativa -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-3">
+            <thead>
+              <tr class="bg-slate-200">
+                <th class="border border-black p-1.5">Destacado (D = 4)</th>
+                <th class="border border-black p-1.5">Satisfactorio (S = 3)</th>
+                <th class="border border-black p-1.5">En Proceso (EP = 2)</th>
+                <th class="border border-black p-1.5">Requiere Apoyo (RA = 1)</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td class="border border-black p-1.5 text-[11px]">Ejecuta el patrón motriz con fluidez, control y autonomía; muestra empatía y liderazgo cooperativo.</td>
+                <td class="border border-black p-1.5 text-[11px]">Logra el desempeño motriz y respeta normas y turnos la mayor parte del tiempo.</td>
+                <td class="border border-black p-1.5 text-[11px]">Requiere apoyo constante para coordinar movimientos o regular actitudes competitivas.</td>
+                <td class="border border-black p-1.5 text-[11px]">Muestra dificultad notable en la ejecución motriz básica o rechazo a la interacción colectiva.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Matriz de Indicadores -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-3">
+            <thead>
+              <tr class="bg-slate-200">
+                <th class="border border-black p-1.5 w-16 text-center">Sesión</th>
+                <th class="border border-black p-1.5">Indicador de Observación (Técnico / Actitudinal)</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${indicatorsRows}
+              <tr>
+                <td class="border border-black p-1.5 text-center font-bold">Transv.</td>
+                <td class="border border-black p-1.5 text-xs">Integración Grupal: Convive e interactúa armónicamente en equipos mixtos y cooperativos.</td>
+              </tr>
+            </tbody>
+          </table>
+
+          <!-- Registro Grupal -->
+          <table class="print-table w-full border-collapse border border-black text-xs mb-4">
+            <thead>
+              <tr class="bg-slate-200">
+                <th class="border border-black p-1.5 w-8 text-center">N°</th>
+                <th class="border border-black p-1.5">Nombre del Alumno(a)</th>
+                ${sHeaders}
+                <th class="border border-black p-1.5 text-center">Integración</th>
+                <th class="border border-black p-1.5 text-center">Prom / Nivel</th>
+                <th class="border border-black p-1.5">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${studentRows}
+            </tbody>
+          </table>
+
+          <div class="text-xs space-y-1 mb-6">
+            <p><strong>Aspectos destacados del grupo:</strong> ${escapeHtml(plan.aspectosDestacados || 'Sin observaciones registradas.')}</p>
+            <p><strong>Barreras para el Aprendizaje y la Participación (BAP) / Ajustes:</strong> ${escapeHtml(plan.bapNotes || 'Sin observaciones registradas.')}</p>
+          </div>
+
+          <div class="mt-8 pt-4 text-center text-xs">
+            <div class="border-t border-black w-72 mx-auto pt-1 font-bold">Firma del Docente en Formación: ${escapeHtml(plan.docentes)}</div>
+          </div>
+        </div>
+      `;
+    }
+
+    function exportEvaluationCSV() {
+      const plan = getActivePlan();
+      const sHeaders = plan.sessions.map((_, i) => `S${i + 1}`);
+      const headers = ['N°', 'Nombre del Alumno', ...sHeaders, 'Integracion Grupal', 'Promedio', 'Nivel de Desempeno', 'Observaciones'];
+
+      const rows = (plan.students || []).map((st, idx) => {
+        const stats = calculateStudentStats(st, plan.sessions.length);
+        const sVals = plan.sessions.map((_, i) => st.scores?.[`s${i + 1}`] || 4);
+        const tVal = st.scores?.trans || 4;
+        return [
+          idx + 1,
+          `"${(st.name || '').replace(/"/g, '""')}"`,
+          ...sVals,
+          tVal,
+          stats.avg,
+          `"${stats.label}"`,
+          `"${(st.obs || '').replace(/"/g, '""')}"`
+        ].join(',');
+      });
+
+      const csvContent = '\uFEFF' + [headers.join(','), ...rows].join('\n');
+      const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Escala_Apreciacion_${plan.grado}_${plan.grupo}.csv`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Archivo CSV descargado para Excel');
+    }
+
+    function exportFullBackupJSON() {
+      const blob = new Blob([JSON.stringify(appState, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `Respaldo_ENLEF_NEM_${new Date().toISOString().split('T')[0]}.json`;
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast('Respaldo JSON descargado');
+    }
+
+    function importFullBackupJSON(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function (e) {
+        try {
+          const imported = JSON.parse(e.target.result);
+          if (imported && Array.isArray(imported.plans) && Array.isArray(imported.tasks)) {
+            appState = imported;
+            persistState();
+            populateSubjectsSelects();
+            renderTasks();
+            renderPlanSelector();
+            populatePlanForm(getActivePlan());
+            renderPrintPreview();
+            showToast('Base de datos restaurada con éxito');
+          } else {
+            alert('El archivo JSON no tiene el formato válido de ENLEF-NEM Pro.');
+          }
+        } catch (err) {
+          alert('Error al leer el archivo JSON.');
+        }
+      };
+      reader.readAsText(file);
+    }
+
+    function escapeHtml(str) {
+      if (str === null || str === undefined) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // =========================================================================
+    // CONFIGURACIÓN PWA EMBEBIDA (WEB MANIFEST + SERVICE WORKER OFFLINE-FIRST)
+    // =========================================================================
+    function setupPWA() {
+      const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0f172a"/><circle cx="256" cy="256" r="180" fill="#d97706"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="190" fill="#0f172a">EF</text></svg>`;
+      const iconUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
+
+      const manifest = {
+        name: 'ENLEF-NEM Pro | Educación Física',
+        short_name: 'ENLEF Pro',
+        description: 'Gestor de Tareas, Plantilla Oficial de Planeaciones y Escalas de Apreciación ENLEF Chiapas.',
+        start_url: './index.html',
+        display: 'standalone',
+        orientation: 'any',
+        background_color: '#0f172a',
+        theme_color: '#0f172a',
+        icons: [
+          { src: iconUrl, sizes: '192x192', type: 'image/svg+xml', purpose: 'any maskable' },
+          { src: iconUrl, sizes: '512x512', type: 'image/svg+xml', purpose: 'any maskable' }
+        ]
+      };
+
+      const manifestBlob = new Blob([JSON.stringify(manifest)], { type: 'application/manifest+json' });
+      const link = document.createElement('link');
+      link.rel = 'manifest';
+      link.href = URL.createObjectURL(manifestBlob);
+      document.head.appendChild(link);
+
+      // Registro de Service Worker cuando se aloja en HTTPS / localhost
+      if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
+        const swCode = `
+          const CACHE_NAME = 'enlef-nem-pwa-v1';
+          self.addEventListener('install', e => {
+            self.skipWaiting();
+          });
+          self.addEventListener('activate', e => {
+            e.waitUntil(self.clients.claim());
+          });
+          self.addEventListener('fetch', e => {
+            e.respondWith(
+              fetch(e.request).catch(() => caches.match(e.request))
+            );
+          });
+        `;
+        const swBlob = new Blob([swCode], { type: 'application/javascript' });
+        navigator.serviceWorker.register(URL.createObjectURL(swBlob)).catch(() => {});
+      }
+
+      // Captura del evento de instalación nativa en Android / Chrome / Edge
+      let deferredPrompt = null;
+      const installBtn = document.getElementById('install-pwa-btn');
+      window.addEventListener('beforeinstallprompt', (e) => {
+        e.preventDefault();
+        deferredPrompt = e;
+        installBtn.classList.remove('hidden');
+      });
+
+      installBtn.addEventListener('click', async () => {
+        if (!deferredPrompt) return;
+        deferredPrompt.prompt();
+        await deferredPrompt.userChoice;
+        deferredPrompt = null;
+        installBtn.classList.add('hidden');
+      });
+    }
+
+    // Inicialización al cargar el DOM
+    window.addEventListener('DOMContentLoaded', () => {
+      document.getElementById('task-date').value = new Date().toISOString().split('T')[0];
+      populateSubjectsSelects();
+      renderTasks();
+      renderPlanSelector();
+      populatePlanForm(getActivePlan());
+      renderPrintPreview();
+      setupPWA();
+      lucide.createIcons();
+    });
+  </script>
+</body>
+</html>
