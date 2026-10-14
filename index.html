@@ -35,18 +35,28 @@
   </script>
 
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Times+New+Roman&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
 
-    body {
+    html, body {
       font-family: 'Inter', system-ui, -apple-system, sans-serif;
       background-color: #f1f5f9;
       color: #0f172a;
       -webkit-tap-highlight-color: transparent;
+      overflow-x: hidden;
+      max-width: 100vw;
+      width: 100%;
+    }
+
+    /* Evita que selectores o textos largos rompan el ancho en celulares */
+    select, input, textarea {
+      max-width: 100%;
+      min-width: 0;
+      box-sizing: border-box;
     }
 
     ::-webkit-scrollbar {
-      width: 6px;
-      height: 6px;
+      width: 5px;
+      height: 5px;
     }
     ::-webkit-scrollbar-track {
       background: #e2e8f0;
@@ -89,12 +99,14 @@
     /* Estilos exclusivos para impresión oficial (@media print) */
     @media print {
       @page {
-        margin: 12mm;
+        margin: 10mm;
       }
-      body {
+      html, body {
         background: #ffffff !important;
         color: #000000 !important;
         font-size: 10pt;
+        overflow: visible !important;
+        max-width: none !important;
       }
       .no-print {
         display: none !important;
@@ -126,6 +138,10 @@
         print-color-adjust: exact;
         font-weight: 700;
       }
+      .header-orange-text {
+        -webkit-print-color-adjust: exact !important;
+        print-color-adjust: exact !important;
+      }
       .apa-page-break {
         page-break-before: always;
       }
@@ -134,63 +150,60 @@
 </head>
 <body class="min-h-screen flex flex-col">
 
-  <!-- BARRA SUPERIOR INSTITUCIONAL (NO SE IMPRIME) -->
-  <header class="no-print bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-700">
-    <div class="max-w-7xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-3">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md font-extrabold text-slate-950 text-lg">
+  <!-- BARRA SUPERIOR INSTITUCIONAL OPTIMIZADA PARA MÓVIL -->
+  <header class="no-print bg-slate-900 text-white shadow-lg sticky top-0 z-40 border-b border-slate-700 w-full">
+    <div class="max-w-7xl mx-auto px-3 sm:px-4 py-2.5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2.5">
+      <div class="flex items-center gap-2.5 min-w-0">
+        <div class="w-9 h-9 sm:w-10 sm:h-10 shrink-0 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center shadow-md font-extrabold text-slate-950 text-base sm:text-lg">
           EF
         </div>
-        <div>
+        <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
-            <h1 class="font-bold text-base md:text-lg tracking-tight leading-none">ENLEF "Pedro Reynol Ozuna Henning"</h1>
-            <span class="hidden sm:inline-block text-[11px] font-semibold uppercase px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-full">NEM 2026</span>
+            <h1 class="font-bold text-sm sm:text-base md:text-lg tracking-tight truncate">ENLEF "Pedro Reynol Ozuna Henning"</h1>
+            <span class="hidden md:inline-block text-[11px] font-semibold uppercase px-2 py-0.5 bg-sky-500/20 text-sky-300 border border-sky-400/30 rounded-full shrink-0">NEM 2026</span>
           </div>
-          <p class="text-xs text-slate-400 mt-0.5">Tuxtla Gutiérrez, Chiapas • Sistema Integral de Docencia, APA 7 y Evaluación</p>
+          <p class="text-[11px] sm:text-xs text-slate-400 truncate">Tuxtla Gutiérrez, Chiapas • Docencia, APA 7 y Evaluación</p>
         </div>
       </div>
 
-      <!-- Acciones Rápidas / Configurar Membrete y Logos / Instalación -->
-      <div class="flex flex-wrap items-center gap-2">
-        <button onclick="openHeaderConfigModal()" class="bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm">
-          <i data-lucide="image" class="w-4 h-4"></i> Membrete y Logos Oficiales
+      <!-- Botones de Membrete e Instalación adaptables a móvil -->
+      <div class="flex items-center justify-between sm:justify-end gap-2 w-full sm:w-auto">
+        <button onclick="openHeaderConfigModal()" class="flex-1 sm:flex-initial justify-center bg-slate-800 hover:bg-slate-700 text-amber-300 border border-amber-500/40 font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition shadow-sm">
+          <i data-lucide="image" class="w-4 h-4 shrink-0"></i>
+          <span class="truncate">Membrete y Logos Oficiales</span>
         </button>
-        <span id="network-badge" class="hidden md:flex text-xs px-2.5 py-1 rounded-full bg-emerald-500/20 text-emerald-300 border border-emerald-500/30 items-center gap-1.5">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="network-text">Activo (Local DB)</span>
-        </span>
-        <button id="install-pwa-btn" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 transition">
-          <i data-lucide="download" class="w-4 h-4"></i> Instalar App
+        <button id="install-pwa-btn" class="hidden bg-amber-500 hover:bg-amber-400 text-slate-950 font-semibold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shrink-0 transition">
+          <i data-lucide="download" class="w-4 h-4"></i> Instalar
         </button>
       </div>
     </div>
 
-    <!-- NAVEGACIÓN DE LOS 6 MÓDULOS -->
-    <nav class="bg-slate-800/90 border-t border-slate-700/80 overflow-x-auto">
+    <!-- NAVEGACIÓN DE LOS 6 MÓDULOS (SCROLL TÁCTIL HORIZONTAL LIMPIO) -->
+    <nav class="bg-slate-800/95 border-t border-slate-700/80 overflow-x-auto w-full">
       <div class="max-w-7xl mx-auto px-2 sm:px-4 flex space-x-1 sm:space-x-1.5 py-1.5">
-        <button onclick="switchTab('tareas')" id="tab-btn-tareas" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow">
-          <i data-lucide="check-square" class="w-4 h-4"></i>
-          <span>1. Gestor Tareas + IA</span>
-          <span id="badge-count-tareas" class="ml-0.5 px-1.5 py-0.2 bg-slate-900/50 rounded-full text-[11px]">0</span>
+        <button onclick="switchTab('tareas')" id="tab-btn-tareas" class="nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow">
+          <i data-lucide="check-square" class="w-3.5 h-3.5 shrink-0"></i>
+          <span>1. Tareas + IA</span>
+          <span id="badge-count-tareas" class="ml-0.5 px-1.5 py-0.2 bg-slate-900/50 rounded-full text-[10px]">0</span>
         </button>
-        <button onclick="switchTab('planeaciones')" id="tab-btn-planeaciones" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
-          <i data-lucide="clipboard-list" class="w-4 h-4"></i>
-          <span>2. Plantilla Planeación</span>
+        <button onclick="switchTab('planeaciones')" id="tab-btn-planeaciones" class="nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="clipboard-list" class="w-3.5 h-3.5 shrink-0"></i>
+          <span>2. Planeaciones</span>
         </button>
-        <button onclick="switchTab('evaluacion')" id="tab-btn-evaluacion" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
-          <i data-lucide="award" class="w-4 h-4"></i>
+        <button onclick="switchTab('evaluacion')" id="tab-btn-evaluacion" class="nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="award" class="w-3.5 h-3.5 shrink-0"></i>
           <span>3. Escala (Patio)</span>
         </button>
-        <button onclick="switchTab('apa7')" id="tab-btn-apa7" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
-          <i data-lucide="book-marked" class="w-4 h-4 text-amber-400"></i>
+        <button onclick="switchTab('apa7')" id="tab-btn-apa7" class="nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="book-marked" class="w-3.5 h-3.5 text-amber-400 shrink-0"></i>
           <span>4. Creador APA 7</span>
         </button>
-        <button onclick="switchTab('juegos')" id="tab-btn-juegos" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
-          <i data-lucide="gamepad-2" class="w-4 h-4 text-emerald-400"></i>
+        <button onclick="switchTab('juegos')" id="tab-btn-juegos" class="nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="gamepad-2" class="w-3.5 h-3.5 text-emerald-400 shrink-0"></i>
           <span>5. Juegos NEM</span>
         </button>
-        <button onclick="switchTab('exportar')" id="tab-btn-exportar" class="nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
-          <i data-lucide="printer" class="w-4 h-4"></i>
+        <button onclick="switchTab('exportar')" id="tab-btn-exportar" class="nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700">
+          <i data-lucide="printer" class="w-3.5 h-3.5 shrink-0"></i>
           <span>6. Impresión y Logos</span>
         </button>
       </div>
@@ -198,33 +211,33 @@
   </header>
 
   <!-- CONTENEDOR PRINCIPAL -->
-  <main class="no-print flex-1 max-w-7xl w-full mx-auto px-3 sm:px-6 py-5">
+  <main class="no-print flex-1 max-w-7xl w-full mx-auto px-2.5 sm:px-6 py-4 sm:py-5 overflow-x-hidden">
 
     <!-- ===================================================================
          MÓDULO 1: GESTOR Y CLASIFICADOR INTELIGENTE DE TAREAS ENLEF + ADJUNTOS IA
     ==================================================================== -->
-    <section id="module-tareas" class="module-section space-y-6">
+    <section id="module-tareas" class="module-section space-y-5">
 
-      <!-- NUEVA CAJA: DETECTOR AUTOMÁTICO DE RÚBRICAS Y DOCUMENTOS ADJUNTOS -->
+      <!-- DETECTOR AUTOMÁTICO DE RÚBRICAS Y DOCUMENTOS ADJUNTOS -->
       <div class="bg-gradient-to-r from-slate-900 via-slate-800 to-sky-950 text-white rounded-2xl shadow-md border border-slate-700 p-4 sm:p-5">
         <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           <div class="space-y-1">
             <span class="inline-flex items-center gap-1.5 text-[11px] font-extrabold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-500 text-slate-950">
               <i data-lucide="cpu" class="w-3.5 h-3.5"></i> Clasificador Inteligente de Rúbricas y Jornadas
             </span>
-            <h3 class="text-base sm:text-lg font-bold">Adjunta tu Rúbrica o Instrucciones (PDF, TXT, DOC o Imagen)</h3>
+            <h3 class="text-sm sm:text-lg font-bold">Adjunta tu Rúbrica o Instrucciones (PDF, TXT, DOC o Imagen)</h3>
             <p class="text-xs text-slate-300">
               El asistente analiza el documento adjunto, detecta automáticamente la asignatura de la ENLEF, extrae el título, genera el bosquejo APA 7 y lo clasifica en tu tablero de control.
             </p>
           </div>
-          <div class="flex flex-wrap items-center gap-2 shrink-0">
-            <label class="cursor-pointer bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow flex items-center gap-2 transition">
-              <i data-lucide="paperclip" class="w-4 h-4"></i>
+          <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 shrink-0">
+            <label class="cursor-pointer bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-2 transition">
+              <i data-lucide="paperclip" class="w-4 h-4 shrink-0"></i>
               <span>Subir Rúbrica / Documento</span>
               <input type="file" id="rubric-file-input" accept=".pdf,.txt,.md,.doc,.docx,.png,.jpg,.jpeg" onchange="handleSmartDocumentUpload(event)" class="hidden" />
             </label>
-            <button type="button" onclick="autoDetectAndSaveFromInstructions()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow flex items-center gap-1.5 transition" title="Si pegaste texto abajo, detecta la materia automáticamente">
-              <i data-lucide="wand-2" class="w-4 h-4"></i> Auto-Clasificar Texto
+            <button type="button" onclick="autoDetectAndSaveFromInstructions()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 transition">
+              <i data-lucide="wand-2" class="w-4 h-4 shrink-0"></i> Auto-Clasificar Texto
             </button>
           </div>
         </div>
@@ -234,48 +247,45 @@
         </div>
       </div>
 
-      <!-- Encabezado y Formulario de Captura Rápida -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+      <!-- Formulario de Captura Rápida -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-3.5">
           <div>
-            <h2 class="text-lg sm:text-xl font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="book-open" class="w-5 h-5 text-sky-600"></i>
+            <h2 class="text-base sm:text-xl font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="book-open" class="w-5 h-5 text-sky-600 shrink-0"></i>
               Gestor Académico y Estructurador de Tareas ENLEF
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
+            <p class="text-xs text-slate-500 mt-0.5">
               Clasifica tus entregas por asignatura curricular y envíalas en un clic al Creador de Documentos APA 7.
             </p>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="openSubjectsModal()" class="text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition">
-              <i data-lucide="settings" class="w-4 h-4"></i> Configurar Materias (<span id="subjects-count">9</span>)
-            </button>
-          </div>
+          <button onclick="openSubjectsModal()" class="self-start sm:self-auto text-xs font-semibold px-3 py-2 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 flex items-center gap-1.5 transition shrink-0">
+            <i data-lucide="settings" class="w-4 h-4"></i> Materias (<span id="subjects-count">9</span>)
+          </button>
         </div>
 
-        <!-- Formulario de Captura Rápida de Tarea -->
-        <form id="task-form" onsubmit="saveTask(event)" class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-4">
+        <form id="task-form" onsubmit="saveTask(event)" class="mt-4 grid grid-cols-1 md:grid-cols-12 gap-3.5">
           <input type="hidden" id="task-id" />
           <input type="hidden" id="task-attachment-name" />
 
           <div class="md:col-span-5">
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Asignatura Curricular ENLEF *</label>
-            <select id="task-subject" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
+            <select id="task-subject" required class="w-full rounded-xl border border-slate-300 px-3 py-2.5 text-xs sm:text-sm bg-slate-50 focus:bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none"></select>
           </div>
 
           <div class="md:col-span-4">
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Título de la Tarea / Producto *</label>
-            <input type="text" id="task-title" required placeholder="Ej. Ensayo sobre ética docente, Circuito inclusivo..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+            <input type="text" id="task-title" required placeholder="Ej. Ensayo sobre ética docente..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none" />
           </div>
 
           <div class="md:col-span-3 grid grid-cols-2 gap-2">
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fecha Límite *</label>
-              <input type="date" id="task-date" required class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+              <input type="date" id="task-date" required class="w-full rounded-xl border border-slate-300 px-2 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Prioridad</label>
-              <select id="task-priority" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
+              <select id="task-priority" class="w-full rounded-xl border border-slate-300 px-2 py-2 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none">
                 <option value="Alta">🔴 Alta</option>
                 <option value="Media" selected>🟡 Media</option>
                 <option value="Baja">🟢 Baja</option>
@@ -285,60 +295,59 @@
 
           <div class="md:col-span-12">
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Instrucciones Detalladas / Rúbrica del Docente *</label>
-            <textarea id="task-instructions" rows="3" required oninput="previewSubjectDetection(this.value)" placeholder="Pega aquí las indicaciones o sube tu archivo arriba. El detector identificará la materia automáticamente..." class="w-full rounded-xl border border-slate-300 p-3 text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
+            <textarea id="task-instructions" rows="3" required oninput="previewSubjectDetection(this.value)" placeholder="Pega aquí las indicaciones o sube tu archivo arriba. El detector identificará la materia automáticamente..." class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm focus:ring-2 focus:ring-sky-500 focus:outline-none"></textarea>
           </div>
 
-          <!-- Botón de Generar Desglose Académico + Guardar -->
-          <div class="md:col-span-12 flex flex-wrap items-center justify-between gap-3 pt-1">
-            <div class="flex flex-wrap items-center gap-2">
-              <button type="button" onclick="generateAcademicOutlineFromForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition">
-                <i data-lucide="sparkles" class="w-4 h-4"></i>
-                Generar Desglose / Estructura Académica (APA 7)
+          <div class="md:col-span-12 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pt-1">
+            <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2">
+              <button type="button" onclick="generateAcademicOutlineFromForm()" class="bg-amber-500 hover:bg-amber-600 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="sparkles" class="w-4 h-4 shrink-0"></i>
+                <span>Generar Estructura APA 7</span>
               </button>
-              <button type="button" onclick="sendFormTaskToApaEditor()" class="bg-slate-800 hover:bg-slate-900 text-amber-300 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow-sm flex items-center gap-2 transition">
-                <i data-lucide="book-marked" class="w-4 h-4"></i>
-                Redactar Trabajo Completo en APA 7
+              <button type="button" onclick="sendFormTaskToApaEditor()" class="bg-slate-800 hover:bg-slate-900 text-amber-300 font-bold text-xs px-3.5 py-2.5 rounded-xl shadow-sm flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="book-marked" class="w-4 h-4 shrink-0"></i>
+                <span>Redactar Trabajo en APA 7</span>
               </button>
             </div>
 
             <div class="flex items-center gap-2">
-              <button type="button" onclick="resetTaskForm()" class="px-3 py-2 rounded-xl border border-slate-300 text-slate-600 text-xs sm:text-sm hover:bg-slate-100">
+              <button type="button" onclick="resetTaskForm()" class="flex-1 sm:flex-initial px-3 py-2.5 rounded-xl border border-slate-300 text-slate-600 text-xs font-semibold hover:bg-slate-100">
                 Limpiar
               </button>
-              <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl shadow flex items-center gap-2 transition">
-                <i data-lucide="plus-circle" class="w-4 h-4"></i>
+              <button type="submit" class="flex-1 sm:flex-initial bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-5 py-2.5 rounded-xl shadow flex items-center justify-center gap-1.5 transition">
+                <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i>
                 <span id="task-submit-label">Guardar Tarea</span>
               </button>
             </div>
           </div>
 
           <!-- Contenedor de Bosquejo Académico Generado -->
-          <div id="task-outline-preview-box" class="hidden md:col-span-12 bg-slate-900 text-slate-100 rounded-xl p-4 border border-slate-700">
-            <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-3">
+          <div id="task-outline-preview-box" class="hidden md:col-span-12 bg-slate-900 text-slate-100 rounded-xl p-3.5 border border-slate-700">
+            <div class="flex items-center justify-between border-b border-slate-700 pb-2 mb-2.5">
               <span class="text-xs font-bold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
                 <i data-lucide="file-text" class="w-4 h-4"></i> Bosquejo Académico Generado (Editable)
               </span>
               <button type="button" onclick="copyOutlineText()" class="text-xs bg-slate-800 hover:bg-slate-700 px-2.5 py-1 rounded text-sky-300 flex items-center gap-1">
-                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar Texto
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Copiar
               </button>
             </div>
-            <textarea id="task-outline-text" rows="8" class="w-full bg-slate-950 text-slate-100 text-xs sm:text-sm font-mono p-3 rounded-lg border border-slate-800 focus:outline-none"></textarea>
+            <textarea id="task-outline-text" rows="7" class="w-full bg-slate-950 text-slate-100 text-xs font-mono p-2.5 rounded-lg border border-slate-800 focus:outline-none"></textarea>
           </div>
         </form>
       </div>
 
-      <!-- Filtros y Tablero Kanban / Lista de Pendientes -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
+      <!-- Tablero de Control de Entregas -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
-          <h3 class="font-bold text-slate-800 flex items-center gap-2">
-            <i data-lucide="layout-grid" class="w-5 h-5 text-sky-600"></i>
+          <h3 class="font-bold text-sm sm:text-base text-slate-800 flex items-center gap-2">
+            <i data-lucide="layout-grid" class="w-5 h-5 text-sky-600 shrink-0"></i>
             Tablero de Control de Entregas y Recordatorios
           </h3>
-          <div class="flex flex-wrap items-center gap-2">
-            <select id="filter-task-subject" onchange="renderTasks()" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-slate-50">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2 w-full sm:w-auto">
+            <select id="filter-task-subject" onchange="renderTasks()" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs bg-slate-50">
               <option value="ALL">Todas las asignaturas</option>
             </select>
-            <select id="filter-task-status" onchange="renderTasks()" class="rounded-lg border border-slate-300 px-3 py-1.5 text-xs bg-slate-50">
+            <select id="filter-task-status" onchange="renderTasks()" class="w-full rounded-lg border border-slate-300 px-2.5 py-1.5 text-xs bg-slate-50">
               <option value="ALL">Todos los estados</option>
               <option value="Pendiente">⏳ Pendientes</option>
               <option value="En Progreso">⚡ En Progreso</option>
@@ -347,61 +356,61 @@
           </div>
         </div>
 
-        <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4"></div>
+        <div id="tasks-container" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3.5"></div>
       </div>
     </section>
 
     <!-- ===================================================================
          MÓDULO 2: GENERADOR Y EDITOR CENTRAL DE PLANEACIONES (PLANTILLA DEFINITIVA)
     ==================================================================== -->
-    <section id="module-planeaciones" class="module-section hidden space-y-6">
-      <!-- Barra superior de selección de planeaciones guardadas -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 flex flex-wrap items-center justify-between gap-3">
-        <div class="flex items-center gap-3 flex-1 min-w-[260px]">
-          <label class="text-xs font-bold uppercase text-slate-500 whitespace-nowrap">Planeación Activa:</label>
-          <select id="plan-selector" onchange="loadSelectedPlan(this.value)" class="flex-1 rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold text-slate-800 bg-slate-50 focus:ring-2 focus:ring-sky-500"></select>
+    <section id="module-planeaciones" class="module-section hidden space-y-5">
+      <!-- Barra superior de selección de planeaciones (Corregida para no desbordar en móvil) -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-4 flex flex-col lg:flex-row lg:items-center justify-between gap-3">
+        <div class="flex flex-col sm:flex-row sm:items-center gap-1.5 sm:gap-3 w-full lg:flex-1 min-w-0">
+          <label class="text-xs font-bold uppercase text-slate-500 shrink-0">Planeación Activa:</label>
+          <select id="plan-selector" onchange="loadSelectedPlan(this.value)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold text-slate-800 bg-slate-50 focus:ring-2 focus:ring-sky-500 truncate"></select>
         </div>
-        <div class="flex flex-wrap items-center gap-2">
-          <button type="button" onclick="openHeaderConfigModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
-            <i data-lucide="image" class="w-4 h-4"></i> Editar Logos y Encabezado Oficial
+        <div class="flex flex-wrap items-center gap-2 w-full lg:w-auto">
+          <button type="button" onclick="openHeaderConfigModal()" class="flex-1 sm:flex-initial justify-center bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="image" class="w-4 h-4 shrink-0"></i> Logos y Encabezado
           </button>
-          <button onclick="createNewBlankPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
-            <i data-lucide="file-plus" class="w-4 h-4 text-sky-600"></i> Nueva Planeación
+          <button type="button" onclick="createNewBlankPlan()" class="flex-1 sm:flex-initial justify-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="file-plus" class="w-4 h-4 text-sky-600 shrink-0"></i> Nueva
           </button>
-          <button onclick="duplicateCurrentPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
-            <i data-lucide="copy" class="w-4 h-4 text-amber-600"></i> Duplicar
+          <button type="button" onclick="duplicateCurrentPlan()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+            <i data-lucide="copy" class="w-4 h-4 text-amber-600 shrink-0"></i> Duplicar
           </button>
-          <button onclick="deleteCurrentPlan()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1 transition">
+          <button type="button" onclick="deleteCurrentPlan()" class="bg-rose-50 hover:bg-rose-100 text-rose-700 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1 transition">
             <i data-lucide="trash-2" class="w-4 h-4"></i>
           </button>
         </div>
       </div>
 
       <!-- FORMULARIO DE LA PLANTILLA OFICIAL DEFINITIVA -->
-      <form id="plan-form" onsubmit="saveCurrentPlan(event)" class="space-y-6">
+      <form id="plan-form" onsubmit="saveCurrentPlan(event)" class="space-y-5">
         <!-- 1. ENCABEZADO INSTITUCIONAL Y ADMINISTRATIVO -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="bg-slate-900 text-white px-5 py-3 flex items-center justify-between">
-            <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="building-2" class="w-4 h-4 text-amber-400"></i>
-              I. Encabezado Institucional y Datos Administrativos (Plantilla Oficial)
+          <div class="bg-slate-900 text-white px-4 sm:px-5 py-3 flex items-center justify-between gap-2">
+            <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="building-2" class="w-4 h-4 text-amber-400 shrink-0"></i>
+              <span>I. Encabezado Institucional y Datos Administrativos</span>
             </h3>
-            <span class="text-[11px] text-slate-400">Formato Definitivo ENLEF</span>
+            <span class="hidden sm:inline-block text-[11px] text-slate-400 shrink-0">Plantilla Oficial ENLEF</span>
           </div>
 
-          <div class="p-4 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div class="p-3.5 sm:p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <div class="sm:col-span-2">
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Escuela de Práctica *</label>
-              <input type="text" id="plan-escuela" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold" placeholder="Ej. ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA" />
+              <input type="text" id="plan-escuela" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold" placeholder="Ej. ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA" />
             </div>
             <div class="sm:col-span-2">
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Docente(s) en Formación *</label>
-              <input type="text" id="plan-docentes" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Nombres completos de los docentes en formación" />
+              <input type="text" id="plan-docentes" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" placeholder="Nombres completos de los docentes en formación" />
             </div>
 
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Nivel Educativo</label>
-              <select id="plan-nivel" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <select id="plan-nivel" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-slate-50 font-medium">
                 <option value="Preescolar">Preescolar</option>
                 <option value="Primaria" selected>Primaria</option>
                 <option value="Secundaria">Secundaria</option>
@@ -409,7 +418,7 @@
             </div>
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase (NEM)</label>
-              <select id="plan-fase" onchange="suggestContentByFase(this.value)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm">
+              <select id="plan-fase" onchange="suggestContentByFase(this.value)" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-slate-50 font-medium">
                 <option value="Fase 2 (Preescolar)">Fase 2 (Preescolar)</option>
                 <option value="Fase 3 (1º y 2º Primaria)">Fase 3 (1º y 2º Primaria)</option>
                 <option value="Fase 4 (3º y 4º Primaria)" selected>Fase 4 (3º y 4º Primaria)</option>
@@ -417,35 +426,98 @@
                 <option value="Fase 6 (1º, 2º y 3º Secundaria)">Fase 6 (Secundaria)</option>
               </select>
             </div>
+
+            <!-- LISTA SELECCIONABLE DE GRADO -->
             <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Grado</label>
-              <input type="text" id="plan-grado" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. 4º" />
-            </div>
-            <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Grupo(s)</label>
-              <input type="text" id="plan-grupo" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. A y B" />
+              <label class="block text-xs font-bold uppercase text-sky-800 mb-1">Grado (Seleccionar de Lista)</label>
+              <select id="plan-grado" class="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-xs sm:text-sm font-bold text-slate-900">
+                <option value="1º">1º Grado</option>
+                <option value="2º">2º Grado</option>
+                <option value="3º">3º Grado</option>
+                <option value="4º" selected>4º Grado</option>
+                <option value="5º">5º Grado</option>
+                <option value="6º">6º Grado</option>
+                <option value="1º y 2º">1º y 2º Grado</option>
+                <option value="3º y 4º">3º y 4º Grado</option>
+                <option value="5º y 6º">5º y 6º Grado</option>
+                <option value="1º, 2º y 3º">1º, 2º y 3º (Multigrado)</option>
+              </select>
             </div>
 
             <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Mes / Periodo</label>
-              <input type="text" id="plan-mes" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Abril / Octubre" />
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Grupo(s)</label>
+              <input type="text" id="plan-grupo" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" placeholder="Ej. A, B o A y B" />
             </div>
+
+            <!-- LISTA SELECCIONABLE DE MES -->
+            <div>
+              <label class="block text-xs font-bold uppercase text-sky-800 mb-1">Mes / Periodo (Lista)</label>
+              <select id="plan-mes" class="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-3 py-2 text-xs sm:text-sm font-bold text-slate-900">
+                <option value="Enero">Enero</option>
+                <option value="Febrero">Febrero</option>
+                <option value="Marzo">Marzo</option>
+                <option value="Abril" selected>Abril</option>
+                <option value="Mayo">Mayo</option>
+                <option value="Junio">Junio</option>
+                <option value="Julio">Julio</option>
+                <option value="Agosto">Agosto</option>
+                <option value="Septiembre">Septiembre</option>
+                <option value="Octubre">Octubre</option>
+                <option value="Noviembre">Noviembre</option>
+                <option value="Diciembre">Diciembre</option>
+                <option value="Septiembre - Octubre">Septiembre - Octubre</option>
+                <option value="Octubre - Noviembre">Octubre - Noviembre</option>
+                <option value="Noviembre - Diciembre">Noviembre - Diciembre</option>
+                <option value="Enero - Febrero">Enero - Febrero</option>
+                <option value="Marzo - Abril">Marzo - Abril</option>
+                <option value="Mayo - Junio">Mayo - Junio</option>
+              </select>
+            </div>
+
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fechas de Aplicación</label>
-              <input type="text" id="plan-fecha" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Del 6 al 24 de Abril" />
+              <input type="text" id="plan-fecha" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" placeholder="Ej. Del 6 al 24 de Abril" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Unidad Didáctica</label>
-              <input type="text" id="plan-unidad" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm" placeholder="Ej. Unidad 1" />
+              <select id="plan-unidad" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-slate-50 font-medium">
+                <option value="Unidad 1">Unidad 1</option>
+                <option value="Unidad 2">Unidad 2</option>
+                <option value="Unidad 3">Unidad 3</option>
+                <option value="Unidad 4">Unidad 4</option>
+                <option value="Unidad 1 - Circuitos de Acción Motriz">Unidad 1 - Circuitos de Acción Motriz</option>
+              </select>
             </div>
+
+            <!-- LISTA SELECCIONABLE DE N° DE SESIONES Y TIEMPO -->
             <div class="grid grid-cols-2 gap-2">
               <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">N° Sesiones</label>
-                <input type="number" id="plan-num-sesiones" min="1" max="20" readonly class="w-full rounded-xl border border-slate-200 bg-slate-100 px-3 py-2 text-sm font-bold text-center" />
+                <label class="block text-xs font-bold uppercase text-sky-800 mb-1">N° Sesiones</label>
+                <select id="plan-num-sesiones" onchange="handleSessionCountSelectChange(this.value)" class="w-full rounded-xl border border-sky-300 bg-sky-50/50 px-2 py-2 text-xs sm:text-sm font-extrabold text-slate-900">
+                  <option value="1">1 Sesión</option>
+                  <option value="2">2 Sesiones</option>
+                  <option value="3">3 Sesiones</option>
+                  <option value="4">4 Sesiones</option>
+                  <option value="5">5 Sesiones</option>
+                  <option value="6" selected>6 Sesiones</option>
+                  <option value="7">7 Sesiones</option>
+                  <option value="8">8 Sesiones</option>
+                  <option value="9">9 Sesiones</option>
+                  <option value="10">10 Sesiones</option>
+                  <option value="12">12 Sesiones</option>
+                  <option value="15">15 Sesiones</option>
+                  <option value="16">16 Sesiones</option>
+                </select>
               </div>
               <div>
-                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tiempo (min)</label>
-                <input type="text" id="plan-tiempo" class="w-full rounded-xl border border-slate-300 px-2.5 py-2 text-sm" placeholder="50 min" />
+                <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Tiempo</label>
+                <select id="plan-tiempo" class="w-full rounded-xl border border-slate-300 px-2 py-2 text-xs sm:text-sm bg-slate-50 font-medium">
+                  <option value="30 min">30 min</option>
+                  <option value="40 min">40 min</option>
+                  <option value="45 min">45 min</option>
+                  <option value="50 min" selected>50 min</option>
+                  <option value="60 min">60 min</option>
+                </select>
               </div>
             </div>
           </div>
@@ -453,85 +525,84 @@
 
         <!-- 2. ELEMENTOS DEL PROGRAMA SINTÉTICO Y EJES ARTICULADORES -->
         <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-          <div class="bg-slate-900 text-white px-5 py-3 flex flex-wrap items-center justify-between gap-2">
-            <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-              <i data-lucide="compass" class="w-4 h-4 text-sky-400"></i>
-              II. Elementos del Programa Sintético y Ejes Articuladores (NEM)
+          <div class="bg-slate-900 text-white px-4 sm:px-5 py-3 flex flex-wrap items-center justify-between gap-2">
+            <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+              <i data-lucide="compass" class="w-4 h-4 text-sky-400 shrink-0"></i>
+              <span>II. Elementos del Programa Sintético y Ejes Articuladores (NEM)</span>
             </h3>
             <button type="button" onclick="fillPresetPDA()" class="text-xs bg-sky-600 hover:bg-sky-500 text-white font-semibold px-3 py-1 rounded-lg flex items-center gap-1 transition">
-              <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Autocompletar Contenido/PDA Oficial
+              <i data-lucide="wand-2" class="w-3.5 h-3.5"></i> Autocompletar Contenido/PDA
             </button>
           </div>
 
-          <div class="p-4 sm:p-6 space-y-4">
+          <div class="p-3.5 sm:p-6 space-y-4">
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Campo(s) Formativo(s) *</label>
-                <input type="text" id="plan-campo" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium" placeholder="Ej. De lo Humano y Lo Comunitario / Ética, Naturaleza y Sociedades" />
+                <input type="text" id="plan-campo" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-medium" placeholder="Ej. De lo Humano y Lo Comunitario" />
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Contenido del Programa Sintético *</label>
-                <input type="text" id="plan-contenido" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-medium" placeholder="Ej. Capacidades y habilidades motrices..." />
+                <input type="text" id="plan-contenido" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-medium" placeholder="Ej. Capacidades y habilidades motrices..." />
               </div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Diagnóstico Contextual del Grupo *</label>
-                <textarea id="plan-diagnostico" rows="3" required class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Describe las características motrices, de convivencia, subgrupos, material disponible y necesidades de inclusión (BAP)..."></textarea>
+                <textarea id="plan-diagnostico" rows="3" required class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm"></textarea>
               </div>
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Proceso de Desarrollo de Aprendizaje (PDA) *</label>
-                <textarea id="plan-pda" rows="3" required class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Pone en práctica sus habilidades motrices en situaciones lúdicas, individuales y colectivas..."></textarea>
+                <textarea id="plan-pda" rows="3" required class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm"></textarea>
               </div>
             </div>
 
-            <!-- Matriz de los 7 Ejes Articuladores -->
-            <div class="pt-2">
+            <div class="pt-1">
               <label class="block text-xs font-bold uppercase text-slate-600 mb-2">Matriz de Ejes Articuladores (Selección Interactiva 1 al 7)</label>
-              <div id="ejes-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5"></div>
+              <div id="ejes-container" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2"></div>
             </div>
           </div>
         </div>
 
-        <!-- 3. BLOQUE DINÁMICO DE SESIONES (1 A N SESIONES) -->
+        <!-- 3. BLOQUE DINÁMICO DE SESIONES -->
         <div class="space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-2 bg-slate-800 text-white px-5 py-3 rounded-2xl shadow-sm">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 bg-slate-800 text-white px-4 sm:px-5 py-3.5 rounded-2xl shadow-sm">
             <div>
-              <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-                <i data-lucide="layers" class="w-4 h-4 text-amber-400"></i>
-                III. Dosificación de Sesiones (Fases, Evaluación, Estrategias y Recursos)
+              <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+                <i data-lucide="layers" class="w-4 h-4 text-amber-400 shrink-0"></i>
+                <span>III. Dosificación de Sesiones (Fases, Evaluación, Estrategias y Recursos)</span>
               </h3>
-              <p class="text-xs text-slate-300">Puedes agregar sesiones manualmente o enviarlas con 1 clic desde el Recomendador de Juegos NEM (Módulo 5).</p>
+              <p class="text-xs text-slate-300 mt-0.5">Selecciona arriba el N° de sesiones en la lista o usa los botones para agregar juegos NEM.</p>
             </div>
             <div class="flex flex-wrap items-center gap-2">
-              <button type="button" onclick="switchTab('juegos')" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
-                <i data-lucide="gamepad-2" class="w-4 h-4"></i> Buscar Juegos NEM
+              <button type="button" onclick="switchTab('juegos')" class="flex-1 sm:flex-initial justify-center bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+                <i data-lucide="gamepad-2" class="w-4 h-4 shrink-0"></i> Buscar Juegos NEM
               </button>
-              <button type="button" onclick="addSessionBlock()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
-                <i data-lucide="plus" class="w-4 h-4"></i> Agregar Sesión
+              <button type="button" onclick="addSessionBlock()" class="flex-1 sm:flex-initial justify-center bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow transition">
+                <i data-lucide="plus" class="w-4 h-4 shrink-0"></i> Agregar Sesión
               </button>
             </div>
           </div>
 
-          <div id="sessions-container" class="space-y-5"></div>
+          <div id="sessions-container" class="space-y-4"></div>
         </div>
 
-        <!-- BARRA FLOTANTE / INFERIOR DE GUARDADO Y PASO A EVALUACIÓN -->
-        <div class="sticky bottom-3 z-30 bg-slate-900/95 backdrop-blur text-white p-3.5 rounded-2xl shadow-xl border border-slate-700 flex flex-wrap items-center justify-between gap-3">
-          <div class="text-xs text-slate-300 flex items-center gap-2">
-            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400"></i>
-            <span>Plantilla Oficial sincronizada con Membrete, Logos y Escala de Apreciación.</span>
+        <!-- BARRA INFERIOR RESPONSIVA PARA MÓVIL -->
+        <div class="sticky bottom-2 z-30 bg-slate-900/95 backdrop-blur text-white p-3 rounded-2xl shadow-xl border border-slate-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5">
+          <div class="text-[11px] sm:text-xs text-slate-300 flex items-center gap-1.5">
+            <i data-lucide="shield-check" class="w-4 h-4 text-emerald-400 shrink-0"></i>
+            <span>Plantilla Oficial sincronizada con Membrete Naranja, Logos y Escala.</span>
           </div>
-          <div class="flex flex-wrap items-center gap-2">
-            <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
-              <i data-lucide="save" class="w-4 h-4"></i> Guardar Planeación
+          <div class="grid grid-cols-1 sm:flex sm:flex-wrap items-center gap-2 w-full sm:w-auto">
+            <button type="submit" class="bg-emerald-500 hover:bg-emerald-400 text-slate-950 font-bold text-xs px-4 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow transition">
+              <i data-lucide="save" class="w-4 h-4 shrink-0"></i> Guardar Planeación
             </button>
-            <button type="button" onclick="saveAndGoToEvaluation()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
-              <i data-lucide="award" class="w-4 h-4"></i> Generar Escala de Apreciación
+            <button type="button" onclick="saveAndGoToEvaluation()" class="bg-sky-500 hover:bg-sky-400 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow transition">
+              <i data-lucide="award" class="w-4 h-4 shrink-0"></i> Escala de Apreciación
             </button>
-            <button type="button" onclick="saveAndGoToPrint('plan')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs sm:text-sm px-4 py-2.5 rounded-xl flex items-center gap-1.5 shadow transition">
-              <i data-lucide="printer" class="w-4 h-4"></i> Vista Oficial de Impresión
+            <button type="button" onclick="saveAndGoToPrint('plan')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow transition">
+              <i data-lucide="printer" class="w-4 h-4 shrink-0"></i> Vista de Impresión
             </button>
           </div>
         </div>
@@ -541,32 +612,31 @@
     <!-- ===================================================================
          MÓDULO 3: GENERADOR AUTOMÁTICO DE ESCALAS DE APRECIACIÓN (MODO PATIO)
     ==================================================================== -->
-    <section id="module-evaluacion" class="module-section hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
+    <section id="module-evaluacion" class="module-section hidden space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 border-b border-slate-100 pb-4">
+          <div class="min-w-0">
             <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-amber-100 text-amber-800">Instrumento Formativo NEM</span>
-            <h2 id="eval-header-school" class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1">ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA</h2>
-            <p id="eval-header-meta" class="text-xs sm:text-sm text-slate-600"></p>
+            <h2 id="eval-header-school" class="text-base sm:text-xl font-extrabold text-slate-900 mt-1 break-words">ESCUELA PRIMARIA FRANCISCO GONZÁLEZ BOCANEGRA</h2>
+            <p id="eval-header-meta" class="text-xs text-slate-600 mt-0.5"></p>
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="openHeaderConfigModal()" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
-              <i data-lucide="image" class="w-4 h-4"></i> Logos y Encabezado
+            <button onclick="openHeaderConfigModal()" class="flex-1 sm:flex-initial justify-center bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-300 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+              <i data-lucide="image" class="w-4 h-4 shrink-0"></i> Logos y Encabezado
             </button>
-            <button onclick="openBulkStudentsModal()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 transition">
-              <i data-lucide="users" class="w-4 h-4 text-sky-600"></i> Cargar Lista Rápida (30-40 Alumnos)
+            <button onclick="openBulkStudentsModal()" class="flex-1 sm:flex-initial justify-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 transition">
+              <i data-lucide="users" class="w-4 h-4 text-sky-600 shrink-0"></i> Cargar Lista (30-40)
             </button>
-            <button onclick="exportEvaluationCSV()" class="bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-              <i data-lucide="file-spreadsheet" class="w-4 h-4"></i> Exportar Excel (CSV)
+            <button onclick="exportEvaluationCSV()" class="flex-1 sm:flex-initial justify-center bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="file-spreadsheet" class="w-4 h-4 shrink-0"></i> Excel (CSV)
             </button>
-            <button onclick="saveAndGoToPrint('eval')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir Escala con Logos
+            <button onclick="saveAndGoToPrint('eval')" class="flex-1 sm:flex-initial justify-center bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="printer" class="w-4 h-4 shrink-0"></i> Imprimir Escala
             </button>
           </div>
         </div>
 
-        <!-- Niveles de Desempeño Oficiales (4 a 1) -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mt-4">
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5 mt-4">
           <div class="p-3 rounded-xl bg-emerald-50 border border-emerald-200">
             <div class="flex items-center justify-between">
               <span class="font-extrabold text-xs uppercase text-emerald-900">Destacado (D)</span>
@@ -598,35 +668,35 @@
         </div>
       </div>
 
-      <!-- Matriz de Indicadores Extraídos Automáticamente por Sesión -->
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-        <h3 class="font-bold text-sm uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
-          <i data-lucide="list-checks" class="w-4 h-4 text-sky-600"></i>
-          Matriz de Indicadores de Observación (Extraídos de las Sesiones de la Planeación)
+      <!-- Matriz de Indicadores -->
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
+        <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider text-slate-700 mb-3 flex items-center gap-2">
+          <i data-lucide="list-checks" class="w-4 h-4 text-sky-600 shrink-0"></i>
+          <span>Matriz de Indicadores de Observación por Sesión</span>
         </h3>
         <div id="eval-indicators-list" class="grid grid-cols-1 md:grid-cols-2 gap-2.5"></div>
       </div>
 
-      <!-- Lista Interactiva de Alumnos para Calificar en Patio -->
+      <!-- Lista Interactiva de Alumnos -->
       <div class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
-        <div class="p-4 sm:p-5 border-b border-slate-200 flex flex-wrap items-center justify-between gap-3 bg-slate-50">
+        <div class="p-3.5 sm:p-5 border-b border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-slate-50">
           <div>
-            <h3 class="font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="tablet-smartphone" class="w-5 h-5 text-sky-600"></i>
-              Registro Táctil de Grupo en Patio (Toca cada celda para alternar D=4, S=3, EP=2, RA=1)
+            <h3 class="font-bold text-sm sm:text-base text-slate-900 flex items-center gap-2">
+              <i data-lucide="tablet-smartphone" class="w-5 h-5 text-sky-600 shrink-0"></i>
+              <span>Registro Táctil de Grupo en Patio (D=4, S=3, EP=2, RA=1)</span>
             </h3>
-            <p class="text-xs text-slate-500">Los cambios se guardan al instante en el dispositivo y calculan el promedio y nivel global automáticamente.</p>
+            <p class="text-xs text-slate-500">Desliza la tabla horizontalmente en tu celular para calificar todas las sesiones.</p>
           </div>
 
-          <form onsubmit="addSingleStudent(event)" class="flex items-center gap-2">
-            <input type="text" id="new-student-name" required placeholder="Nombre del alumno(a)..." class="rounded-xl border border-slate-300 px-3 py-1.5 text-xs sm:text-sm bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none" />
-            <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 whitespace-nowrap">
+          <form onsubmit="addSingleStudent(event)" class="flex items-center gap-2 w-full sm:w-auto">
+            <input type="text" id="new-student-name" required placeholder="Nombre del alumno(a)..." class="flex-1 rounded-xl border border-slate-300 px-3 py-1.5 text-xs bg-white focus:ring-2 focus:ring-sky-500 focus:outline-none" />
+            <button type="submit" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1 shrink-0">
               <i data-lucide="user-plus" class="w-4 h-4"></i> Agregar
             </button>
           </form>
         </div>
 
-        <div class="overflow-x-auto">
+        <div class="overflow-x-auto w-full">
           <table class="w-full text-left border-collapse">
             <thead>
               <tr id="eval-table-head-row" class="bg-slate-900 text-white text-xs uppercase"></tr>
@@ -635,126 +705,124 @@
           </table>
         </div>
 
-        <!-- Retroalimentación Cualitativa General y Ajustes BAP -->
-        <div class="p-4 sm:p-6 bg-slate-50 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="p-3.5 sm:p-6 bg-slate-50 border-t border-slate-200 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Aspectos Destacados del Grupo</label>
-            <textarea id="eval-aspectos-destacados" onchange="saveEvaluationNotes()" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm bg-white" placeholder="Avances en convivencia, integración de subgrupos A y B, respuesta motriz..."></textarea>
+            <textarea id="eval-aspectos-destacados" onchange="saveEvaluationNotes()" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white"></textarea>
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Barreras para el Aprendizaje y la Participación (BAP) / Ajustes Razonables</label>
-            <textarea id="eval-bap-notes" onchange="saveEvaluationNotes()" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm bg-white" placeholder="Adecuaciones implementadas (ej. trabajo sin contacto físico en colchonetas, variantes motrices)..."></textarea>
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Barreras para el Aprendizaje y la Participación (BAP) / Ajustes</label>
+            <textarea id="eval-bap-notes" onchange="saveEvaluationNotes()" rows="2" class="w-full rounded-xl border border-slate-300 p-2.5 text-xs bg-white"></textarea>
           </div>
         </div>
       </div>
     </section>
 
     <!-- ===================================================================
-         MÓDULO 4 (NUEVO): CREADOR Y FORMATEADOR DE DOCUMENTOS APA 7ma EDICIÓN
+         MÓDULO 4: CREADOR Y FORMATEADOR DE DOCUMENTOS APA 7ma EDICIÓN
     ==================================================================== -->
-    <section id="module-apa7" class="module-section hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
-          <div>
-            <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">Normativa Académica APA 7ma Edición + Membrete ENLEF</span>
-            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
-              <i data-lucide="book-marked" class="w-5 h-5 text-sky-600"></i>
-              Generador de Trabajos Académicos en Formato APA 7
+    <section id="module-apa7" class="module-section hidden space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 border-b border-slate-100 pb-4">
+          <div class="min-w-0">
+            <span class="inline-block text-[10px] sm:text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-800">Normativa APA 7ma Edición + Membrete Naranja ENLEF</span>
+            <h2 class="text-base sm:text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
+              <i data-lucide="book-marked" class="w-5 h-5 text-sky-600 shrink-0"></i>
+              <span>Generador de Trabajos Académicos en Formato APA 7</span>
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500">
-              Crea ensayos, reportes de lectura, diagnósticos y propuestas con portada oficial (con ambos logotipos institucionales), interlineado doble, sangría de 1.27 cm y referencias con sangría francesa automática.
+            <p class="text-xs text-slate-500 mt-0.5">
+              Portada oficial con logotipos ajustables y texto central en color naranja, interlineado doble (2.0), sangría de 1.27 cm y referencias con sangría francesa.
             </p>
           </div>
 
-          <div class="flex flex-wrap items-center gap-2">
-            <select id="apa-doc-selector" onchange="loadSelectedApaDoc(this.value)" class="rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold bg-slate-50"></select>
-            <button type="button" onclick="createNewApaDoc()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1">
-              <i data-lucide="file-plus" class="w-4 h-4 text-sky-600"></i> Nuevo APA 7
-            </button>
-            <button type="button" onclick="exportApaToWord()" class="bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-              <i data-lucide="file-text" class="w-4 h-4"></i> Descargar Word (.doc)
-            </button>
-            <button type="button" onclick="saveAndGoToPrint('apa')" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
-              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / PDF APA 7
-            </button>
+          <!-- Controles de documento APA 7 corregidos para no salirse de la pantalla en celular -->
+          <div class="flex flex-col sm:flex-row flex-wrap items-stretch sm:items-center gap-2 w-full lg:w-auto min-w-0">
+            <select id="apa-doc-selector" onchange="loadSelectedApaDoc(this.value)" class="w-full sm:w-64 rounded-xl border border-slate-300 px-3 py-2 text-xs font-semibold bg-slate-50 truncate"></select>
+            <div class="flex flex-wrap items-center gap-2">
+              <button type="button" onclick="createNewApaDoc()" class="flex-1 sm:flex-initial justify-center bg-slate-100 hover:bg-slate-200 text-slate-800 font-semibold text-xs px-3 py-2 rounded-xl flex items-center gap-1">
+                <i data-lucide="file-plus" class="w-4 h-4 text-sky-600 shrink-0"></i> Nuevo APA 7
+              </button>
+              <button type="button" onclick="exportApaToWord()" class="flex-1 sm:flex-initial justify-center bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs px-3 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="file-text" class="w-4 h-4 shrink-0"></i> Word (.doc)
+              </button>
+              <button type="button" onclick="saveAndGoToPrint('apa')" class="w-full sm:w-auto justify-center bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm">
+                <i data-lucide="printer" class="w-4 h-4 shrink-0"></i> Imprimir / PDF APA 7
+              </button>
+            </div>
           </div>
         </div>
 
-        <form id="apa-form" onsubmit="saveCurrentApaDoc(event)" class="mt-5 space-y-5">
-          <!-- Datos de la Portada Estudiantil APA 7 -->
-          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
-            <div class="sm:col-span-2 lg:col-span-3 flex items-center justify-between">
-              <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">1. Datos de Portada Oficial APA 7 (Incluye Logos de Secretaría y ENLEF)</h4>
-              <button type="button" onclick="autoFillApaContentWithAI()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-1.5 rounded-lg flex items-center gap-1.5 shadow-sm">
-                <i data-lucide="sparkles" class="w-3.5 h-3.5"></i> Autocompletar Redacción Base según Asignatura
+        <form id="apa-form" onsubmit="saveCurrentApaDoc(event)" class="mt-4 space-y-4">
+          <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 bg-slate-50 p-3.5 sm:p-4 rounded-xl border border-slate-200">
+            <div class="sm:col-span-2 lg:col-span-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+              <h4 class="text-xs font-extrabold uppercase tracking-wider text-slate-700">1. Datos de Portada Oficial APA 7 (Con Logos y Encabezado Naranja)</h4>
+              <button type="button" onclick="autoFillApaContentWithAI()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-3 py-2 rounded-lg flex items-center justify-center gap-1.5 shadow-sm">
+                <i data-lucide="sparkles" class="w-3.5 h-3.5 shrink-0"></i> Autocompletar Redacción según Asignatura
               </button>
             </div>
 
             <div class="sm:col-span-2">
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Título del Trabajo (Negrita y Centrado en APA 7) *</label>
-              <input type="text" id="apa-title" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white" placeholder="Ej. La Intervención Motriz Inclusiva en la Educación Secundaria bajo la NEM" />
+              <input type="text" id="apa-title" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold bg-white" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Asignatura ENLEF *</label>
-              <select id="apa-subject" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white"></select>
+              <select id="apa-subject" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white"></select>
             </div>
 
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Autor(es) (Docente en Formación) *</label>
-              <input type="text" id="apa-author" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" placeholder="Tu nombre completo" />
+              <input type="text" id="apa-author" required class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white" />
             </div>
             <div>
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Catedrático(a) Titular de la Materia</label>
-              <input type="text" id="apa-instructor" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" placeholder="Ej. Mtro. / Dr. Nombre del Docente" />
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Catedrático(a) Titular</label>
+              <input type="text" id="apa-instructor" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white" />
             </div>
             <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fecha de Entrega</label>
-              <input type="text" id="apa-date" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" placeholder="Ej. 13 de octubre de 2026" />
+              <input type="text" id="apa-date" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white" />
             </div>
           </div>
 
-          <!-- Cuerpo del Documento APA 7 -->
-          <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div class="md:col-span-2">
-              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Resumen / Introducción (Aplica sangría de 1.27 cm automáticamente al imprimir)</label>
-              <textarea id="apa-intro" rows="4" class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Escribe tus párrafos separados por Enter. El sistema les aplicará fuente Times New Roman 12pt, interlineado doble y sangría de primera línea (1.27 cm)..."></textarea>
+          <div class="space-y-3.5">
+            <div>
+              <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Resumen / Introducción (Sangría de 1.27 cm automática)</label>
+              <textarea id="apa-intro" rows="4" class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm"></textarea>
             </div>
-            <div class="md:col-span-2">
+            <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Desarrollo y Fundamentación Pedagógica (Marco NEM)</label>
-              <textarea id="apa-body" rows="6" class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Desarrolla aquí tu análisis teórico, citas narrativas o parentéticas, ej. (Secretaría de Educación Pública [SEP], 2022) y propuesta de intervención..."></textarea>
+              <textarea id="apa-body" rows="6" class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm"></textarea>
             </div>
-            <div class="md:col-span-2">
+            <div>
               <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Conclusiones y Reflexión Docente</label>
-              <textarea id="apa-conclusions" rows="3" class="w-full rounded-xl border border-slate-300 p-3 text-sm" placeholder="Conclusiones y hallazgos derivados de tu práctica o análisis académico..."></textarea>
+              <textarea id="apa-conclusions" rows="3" class="w-full rounded-xl border border-slate-300 p-3 text-xs sm:text-sm"></textarea>
             </div>
           </div>
 
-          <!-- Generador Automático de Referencias y Citas APA 7 -->
-          <div class="bg-slate-900 text-white rounded-2xl p-4 sm:p-5 space-y-4">
-            <div class="flex flex-wrap items-center justify-between gap-2">
-              <div>
-                <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
-                  <i data-lucide="quote" class="w-4 h-4"></i> Constructor Rápido de Referencias APA 7 (Sangría Francesa Automática)
-                </h4>
-                <p class="text-xs text-slate-300">Llena los datos de un libro, plan de estudios o artículo y el sistema armará la cita en el texto y la referencia final.</p>
-              </div>
+          <!-- Constructor de Referencias APA 7 -->
+          <div class="bg-slate-900 text-white rounded-2xl p-3.5 sm:p-5 space-y-3.5">
+            <div>
+              <h4 class="text-xs font-extrabold uppercase tracking-wider text-amber-400 flex items-center gap-1.5">
+                <i data-lucide="quote" class="w-4 h-4 shrink-0"></i> Constructor de Referencias APA 7 (Sangría Francesa Automática)
+              </h4>
+              <p class="text-xs text-slate-300 mt-0.5">Agrega libros o usa los botones rápidos de bibliografía oficial de Educación Física.</p>
             </div>
 
-            <div class="grid grid-cols-1 sm:grid-cols-5 gap-2.5 text-slate-900">
-              <input type="text" id="ref-author" placeholder="Autor(es) ej. Castañer, M." class="rounded-lg px-2.5 py-2 text-xs bg-white" />
+            <div class="grid grid-cols-1 sm:grid-cols-5 gap-2 text-slate-900">
+              <input type="text" id="ref-author" placeholder="Autor ej. Castañer, M." class="rounded-lg px-2.5 py-2 text-xs bg-white" />
               <input type="text" id="ref-year" placeholder="Año ej. 2022" class="rounded-lg px-2.5 py-2 text-xs bg-white" />
-              <input type="text" id="ref-title" placeholder="Título de la obra en cursiva" class="rounded-lg px-2.5 py-2 text-xs bg-white sm:col-span-2" />
-              <input type="text" id="ref-source" placeholder="Editorial / Fuente ej. SEP o INDE" class="rounded-lg px-2.5 py-2 text-xs bg-white" />
+              <input type="text" id="ref-title" placeholder="Título de la obra" class="rounded-lg px-2.5 py-2 text-xs bg-white sm:col-span-2" />
+              <input type="text" id="ref-source" placeholder="Editorial ej. SEP o INDE" class="rounded-lg px-2.5 py-2 text-xs bg-white" />
             </div>
 
-            <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
               <div class="flex flex-wrap gap-1.5">
-                <button type="button" onclick="insertPresetReference('SEP')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Plan de Estudio SEP (2022)</button>
-                <button type="button" onclick="insertPresetReference('Bañuelos')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Sánchez Bañuelos (Didáctica EF)</button>
-                <button type="button" onclick="insertPresetReference('Devis')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Devís y Peiró (Juegos Modificados)</button>
+                <button type="button" onclick="insertPresetReference('SEP')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Plan SEP (2022)</button>
+                <button type="button" onclick="insertPresetReference('Bañuelos')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Sánchez Bañuelos</button>
+                <button type="button" onclick="insertPresetReference('Devis')" class="text-[11px] bg-slate-800 hover:bg-slate-700 text-sky-300 px-2.5 py-1 rounded border border-slate-700">+ Devís y Peiró</button>
               </div>
-              <button type="button" onclick="addFormattedApaReference()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1">
-                <i data-lucide="plus" class="w-4 h-4"></i> Agregar a Lista de Referencias
+              <button type="button" onclick="addFormattedApaReference()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl flex items-center justify-center gap-1">
+                <i data-lucide="plus" class="w-4 h-4"></i> Agregar Referencia
               </button>
             </div>
 
@@ -764,8 +832,8 @@
             </div>
           </div>
 
-          <div class="flex justify-end gap-2">
-            <button type="submit" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center gap-1.5 shadow">
+          <div class="flex justify-end">
+            <button type="submit" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs sm:text-sm px-5 py-2.5 rounded-xl flex items-center justify-center gap-1.5 shadow">
               <i data-lucide="save" class="w-4 h-4"></i> Guardar Documento APA 7
             </button>
           </div>
@@ -774,33 +842,30 @@
     </section>
 
     <!-- ===================================================================
-         MÓDULO 5 (NUEVO): RECOMENDADOR Y GENERADOR DE JUEGOS NEM POR NIVEL Y FASE
+         MÓDULO 5: RECOMENDADOR Y GENERADOR DE JUEGOS NEM POR NIVEL Y FASE
     ==================================================================== -->
-    <section id="module-juegos" class="module-section hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+    <section id="module-juegos" class="module-section hidden space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5 border-b border-slate-100 pb-4">
           <div>
             <span class="text-[11px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-emerald-100 text-emerald-800">Motor Pedagógico Nueva Escuela Mexicana</span>
-            <h2 class="text-lg sm:text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
-              <i data-lucide="gamepad-2" class="w-5 h-5 text-emerald-600"></i>
-              Recomendador Inteligente de Juegos y Actividades por Nivel y Fase
+            <h2 class="text-base sm:text-xl font-extrabold text-slate-900 mt-1 flex items-center gap-2">
+              <i data-lucide="gamepad-2" class="w-5 h-5 text-emerald-600 shrink-0"></i>
+              <span>Recomendador de Juegos y Actividades por Nivel y Fase</span>
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500">
-              Filtra por Nivel, Fase y Tipo de Estrategia Didáctica. Puedes generar nuevas propuestas dinámicas o insertar cualquier juego directamente como una sesión en tu Planeación Activa.
+            <p class="text-xs text-slate-500 mt-0.5">
+              Selecciona Nivel, Fase y Tipo de Juego para obtener propuestas automáticas e insertarlas en tu Planeación Activa.
             </p>
           </div>
-          <div>
-            <button type="button" onclick="generateDynamicNemGames()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs sm:text-sm px-4 py-2.5 rounded-xl shadow flex items-center gap-2 transition">
-              <i data-lucide="refresh-cw" class="w-4 h-4"></i> Generar Nuevas Ideas de Juegos NEM
-            </button>
-          </div>
+          <button type="button" onclick="generateDynamicNemGames()" class="bg-amber-500 hover:bg-amber-400 text-slate-950 font-extrabold text-xs px-4 py-2.5 rounded-xl shadow flex items-center justify-center gap-2 transition shrink-0">
+            <i data-lucide="refresh-cw" class="w-4 h-4"></i> Generar Nuevas Ideas NEM
+          </button>
         </div>
 
-        <!-- Filtros por Nivel, Fase y Categoría de Juego -->
-        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3.5 mt-4 bg-slate-50 p-3.5 rounded-xl border border-slate-200">
           <div>
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">1. Nivel y Fase (NEM)</label>
-            <select id="filter-game-fase" onchange="renderRecommendedGames()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white">
+            <select id="filter-game-fase" onchange="renderRecommendedGames()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold bg-white">
               <option value="ALL">Todas las Fases (Preescolar a Secundaria)</option>
               <option value="Fase 2 (Preescolar)">Preescolar — Fase 2</option>
               <option value="Fase 3 (1º y 2º Primaria)">Primaria (1º y 2º) — Fase 3</option>
@@ -810,85 +875,83 @@
             </select>
           </div>
           <div>
-            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">2. Tipo de Juego / Estrategia Didáctica</label>
-            <select id="filter-game-type" onchange="renderRecommendedGames()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm font-semibold bg-white">
+            <label class="block text-xs font-bold uppercase text-slate-600 mb-1">2. Tipo de Juego / Estrategia</label>
+            <select id="filter-game-type" onchange="renderRecommendedGames()" class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm font-semibold bg-white">
               <option value="ALL">Todos los tipos de juego</option>
               <option value="Juegos cooperativos">🤝 Juegos Cooperativos e Integración</option>
-              <option value="Lúdicos de competencia / Modificados">🏆 Lúdicos de Competencia / Iniciación y Modificados</option>
-              <option value="Motores y Coordinación">⚡ Habilidades Motrices, Reacción y Relevos</option>
+              <option value="Lúdicos de competencia / Modificados">🏆 Lúdicos de Competencia / Modificados</option>
+              <option value="Motores y Coordinación">⚡ Habilidades Motrices y Relevos</option>
               <option value="Sensoriales e Inclusivos">🦯 Juegos Sensoriales e Inclusivos (BAP)</option>
-              <option value="Circuitos Masivos (Sin filas)">🔄 Circuitos para 30-40 Alumnos (Poco Material / Sin Filas)</option>
+              <option value="Circuitos Masivos (Sin filas)">🔄 Circuitos 30-40 Alumnos (Sin Filas)</option>
             </select>
           </div>
           <div>
             <label class="block text-xs font-bold uppercase text-slate-600 mb-1">3. Buscar por Material o Habilidad</label>
-            <input type="text" id="filter-game-search" oninput="renderRecommendedGames()" placeholder="Ej. aros, conos, botellas, velocidad, equilibrio..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-sm bg-white" />
+            <input type="text" id="filter-game-search" oninput="renderRecommendedGames()" placeholder="Ej. aros, conos, botellas, velocidad..." class="w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm bg-white" />
           </div>
         </div>
 
-        <!-- Tarjetas de Juegos Recomendados -->
-        <div id="games-catalog-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-5"></div>
+        <div id="games-catalog-container" class="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4"></div>
       </div>
     </section>
 
     <!-- ===================================================================
-         MÓDULO 6: EXPORTACIÓN, RESPALDO E IMPRESIÓN OFICIAL (PLANEACIÓN, ESCALA Y APA 7)
+         MÓDULO 6: EXPORTACIÓN, RESPALDO E IMPRESIÓN OFICIAL CON LOGOS GRANDES Y TEXTO NARANJA
     ==================================================================== -->
-    <section id="module-exportar" class="module-section hidden space-y-6">
-      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-4 sm:p-6">
-        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <section id="module-exportar" class="module-section hidden space-y-5">
+      <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-3.5 sm:p-6">
+        <div class="flex flex-col lg:flex-row lg:items-center justify-between gap-3.5">
           <div>
-            <h2 class="text-lg font-bold text-slate-900 flex items-center gap-2">
-              <i data-lucide="printer" class="w-5 h-5 text-sky-600"></i>
-              Centro de Impresión Oficial con Logotipos y Sincronización
+            <h2 class="text-base sm:text-lg font-bold text-slate-900 flex items-center gap-2">
+              <i data-lucide="printer" class="w-5 h-5 text-sky-600 shrink-0"></i>
+              <span>Centro de Impresión Oficial con Logos Ajustables y Membrete Naranja</span>
             </h2>
-            <p class="text-xs sm:text-sm text-slate-500 mt-0.5">
-              Todos tus documentos incluyen el logotipo de la Secretaría de Educación de Chiapas (izquierda), el texto institucional (centro) y el logotipo de la ENLEF (derecha).
+            <p class="text-xs text-slate-500 mt-0.5">
+              En celular puedes deslizar la hoja previa hacia los lados para revisarla; al tocar Imprimir o Guardar PDF saldrá con las proporciones exactas de hoja oficial.
             </p>
           </div>
 
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="openHeaderConfigModal()" class="px-3 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 flex items-center gap-1.5">
-              <i data-lucide="image" class="w-4 h-4"></i> Editar Logos y Texto Central
+            <button onclick="openHeaderConfigModal()" class="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl text-xs font-bold bg-amber-100 text-amber-900 border border-amber-300 hover:bg-amber-200 flex items-center gap-1.5">
+              <i data-lucide="sliders" class="w-4 h-4 shrink-0"></i> Tamaño de Logos y Texto
             </button>
-            <button onclick="setPrintMode('plan')" id="btn-mode-plan" class="px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5">
-              <i data-lucide="table" class="w-4 h-4"></i> Planeación Oficial
+            <button onclick="setPrintMode('plan')" id="btn-mode-plan" class="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5">
+              <i data-lucide="table" class="w-4 h-4 shrink-0"></i> Planeación
             </button>
-            <button onclick="setPrintMode('eval')" id="btn-mode-eval" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
-              <i data-lucide="award" class="w-4 h-4"></i> Escala de Apreciación
+            <button onclick="setPrintMode('eval')" id="btn-mode-eval" class="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i data-lucide="award" class="w-4 h-4 shrink-0"></i> Escala
             </button>
-            <button onclick="setPrintMode('apa')" id="btn-mode-apa" class="px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
-              <i data-lucide="book-marked" class="w-4 h-4"></i> Documento APA 7
+            <button onclick="setPrintMode('apa')" id="btn-mode-apa" class="flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5">
+              <i data-lucide="book-marked" class="w-4 h-4 shrink-0"></i> APA 7
             </button>
-            <button onclick="window.print()" class="px-4 py-2 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5">
-              <i data-lucide="printer" class="w-4 h-4"></i> Imprimir / Guardar PDF
+            <button onclick="window.print()" class="w-full sm:w-auto justify-center px-4 py-2.5 rounded-xl text-xs sm:text-sm font-extrabold bg-amber-500 hover:bg-amber-400 text-slate-950 shadow flex items-center gap-1.5">
+              <i data-lucide="printer" class="w-4 h-4 shrink-0"></i> Imprimir / Guardar PDF
             </button>
           </div>
         </div>
 
-        <!-- Herramientas de Respaldo JSON y CSV -->
-        <div class="mt-4 pt-4 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+        <div class="mt-4 pt-3.5 border-t border-slate-100 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div class="text-xs text-slate-600">
-            <strong>Sincronización Manual Rápida:</strong> Exporta tu base de datos en JSON (incluye tus logos personalizados, tareas, documentos APA 7 y planeaciones) entre tu celular y tu tablet.
+            <strong>Respaldo Total:</strong> Guarda o pasa tus datos (logos, tamaño, tareas, APA 7 y planeaciones) entre celular y tablet.
           </div>
           <div class="flex flex-wrap items-center gap-2">
-            <button onclick="exportEvaluationCSV()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1">
-              <i data-lucide="download" class="w-3.5 h-3.5"></i> Descargar Evaluación (CSV)
+            <button onclick="exportEvaluationCSV()" class="flex-1 sm:flex-initial justify-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-emerald-50 text-emerald-700 border border-emerald-200 hover:bg-emerald-100 flex items-center gap-1">
+              <i data-lucide="download" class="w-3.5 h-3.5"></i> Evaluación (CSV)
             </button>
-            <button onclick="exportFullBackupJSON()" class="text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 flex items-center gap-1">
-              <i data-lucide="database" class="w-3.5 h-3.5"></i> Exportar Respaldo Total (JSON)
+            <button onclick="exportFullBackupJSON()" class="flex-1 sm:flex-initial justify-center text-xs font-semibold px-3 py-1.5 rounded-lg bg-sky-50 text-sky-700 border border-sky-200 hover:bg-sky-100 flex items-center gap-1">
+              <i data-lucide="database" class="w-3.5 h-3.5"></i> Exportar JSON
             </button>
-            <label class="cursor-pointer text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 flex items-center gap-1">
-              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar Respaldo (JSON)
+            <label class="flex-1 sm:flex-initial justify-center cursor-pointer text-xs font-semibold px-3 py-1.5 rounded-lg bg-slate-100 text-slate-700 border border-slate-300 hover:bg-slate-200 flex items-center gap-1">
+              <i data-lucide="upload" class="w-3.5 h-3.5"></i> Importar JSON
               <input type="file" accept=".json" onchange="importFullBackupJSON(event)" class="hidden" />
             </label>
           </div>
         </div>
       </div>
 
-      <!-- PREVISUALIZACIÓN DEL DOCUMENTO OFICIAL -->
-      <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-4 sm:p-8 overflow-x-auto">
-        <div id="print-preview-wrapper"></div>
+      <!-- PREVISUALIZACIÓN DEL DOCUMENTO OFICIAL (CONTENEDOR CON SCROLL HORIZONTAL LIMPIO EN CELULAR) -->
+      <div class="bg-white rounded-2xl shadow-md border border-slate-300 p-3 sm:p-8 overflow-x-auto w-full">
+        <div id="print-preview-wrapper" class="min-w-[680px] sm:min-w-0"></div>
       </div>
     </section>
 
@@ -898,42 +961,70 @@
   <div id="direct-print-area" class="print-only hidden"></div>
 
   <!-- =========================================================================
-       MODAL NUEVO: CONFIGURADOR DE LOGOTIPOS OFICIALES Y ENCABEZADO CENTRAL
+       MODAL: CONFIGURADOR DE LOGOTIPOS (CON TAMAÑO AJUSTABLE) Y TEXTO NARANJA
   ========================================================================== -->
-  <div id="header-config-modal" class="no-print fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-3 sm:p-4 overflow-y-auto">
+  <div id="header-config-modal" class="no-print fixed inset-0 bg-slate-950/70 backdrop-blur-sm z-50 hidden items-center justify-center p-2.5 sm:p-4 overflow-y-auto">
     <div class="bg-white rounded-2xl max-w-3xl w-full shadow-2xl border border-slate-200 overflow-hidden my-auto">
-      <div class="bg-slate-900 text-white px-5 py-3.5 flex items-center justify-between">
-        <h3 class="font-bold text-sm uppercase tracking-wider flex items-center gap-2">
-          <i data-lucide="landmark" class="w-4 h-4 text-amber-400"></i>
-          Configuración de Encabezado Institucional y Logotipos Oficiales
+      <div class="bg-slate-900 text-white px-4 sm:px-5 py-3.5 flex items-center justify-between">
+        <h3 class="font-bold text-xs sm:text-sm uppercase tracking-wider flex items-center gap-2">
+          <i data-lucide="landmark" class="w-4 h-4 text-amber-400 shrink-0"></i>
+          <span>Configurar Logotipos, Tamaño y Encabezado Naranja</span>
         </h3>
         <button onclick="closeHeaderConfigModal()" class="text-slate-400 hover:text-white"><i data-lucide="x" class="w-5 h-5"></i></button>
       </div>
 
-      <div class="p-5 space-y-5 max-h-[85vh] overflow-y-auto">
-        <p class="text-xs text-slate-600">
-          Sube las imágenes de tus logotipos desde tu galería y personaliza las líneas del texto central. Este membrete aparecerá automáticamente en la parte superior de tus <strong>Planeaciones</strong>, <strong>Escalas de Apreciación</strong> y <strong>Documentos APA 7</strong>.
-        </p>
-
+      <div class="p-4 sm:p-5 space-y-4 max-h-[85vh] overflow-y-auto">
         <!-- Vista previa en vivo del encabezado -->
-        <div id="header-live-preview" class="border border-slate-300 rounded-xl p-3 bg-slate-50"></div>
+        <div class="border border-slate-300 rounded-xl p-3 bg-white overflow-x-auto">
+          <div id="header-live-preview" class="min-w-[540px] sm:min-w-0"></div>
+        </div>
+
+        <!-- NUEVO CONTROL: TAMAÑO DE LOS LOGOTIPOS Y COLOR NARANJA DEL TEXTO CENTRAL -->
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5 p-3.5 rounded-xl bg-amber-50/70 border border-amber-200">
+          <div>
+            <div class="flex items-center justify-between mb-1">
+              <label class="text-xs font-extrabold uppercase text-amber-950">Tamaño de los Logotipos:</label>
+              <span id="logo-size-label" class="text-xs font-extrabold px-2 py-0.5 rounded bg-amber-500 text-slate-950">96 px (Grande)</span>
+            </div>
+            <input type="range" id="hdr-logo-size" min="55" max="150" step="5" value="96" oninput="updateHeaderLivePreview()" class="w-full accent-amber-600 cursor-pointer" />
+            <div class="flex justify-between text-[10px] text-slate-500 mt-0.5">
+              <span>Pequeño (55px)</span>
+              <span>Mediano (85px)</span>
+              <span>Grande (115px)</span>
+              <span>Extra Grande (150px)</span>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-xs font-extrabold uppercase text-amber-950 mb-1">Color del Texto Central (Naranja Oficial):</label>
+            <div class="flex items-center gap-2">
+              <input type="color" id="hdr-text-color" value="#ea580c" oninput="updateHeaderLivePreview()" class="w-10 h-9 rounded cursor-pointer border border-slate-300 bg-white p-0.5 shrink-0" />
+              <select onchange="document.getElementById('hdr-text-color').value=this.value; updateHeaderLivePreview();" class="flex-1 rounded-lg border border-slate-300 px-2.5 py-2 text-xs font-bold bg-white">
+                <option value="#ea580c">🟠 Naranja Institucional Intenso (#ea580c)</option>
+                <option value="#d97706">🟠 Naranja Dorado Oficial (#d97706)</option>
+                <option value="#f97316">🟠 Naranja Vibrante (#f97316)</option>
+                <option value="#c2410c">🟠 Naranja Oscuro Sobrio (#c2410c)</option>
+              </select>
+            </div>
+          </div>
+        </div>
 
         <!-- Carga de Logotipo Izquierdo y Derecho -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-            <label class="block text-xs font-extrabold uppercase text-slate-700">Logo Izquierdo (Secretaría de Educación de Chiapas)</label>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+          <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
+            <label class="block text-xs font-extrabold uppercase text-slate-700">Logo Izquierdo (Secretaría de Educación)</label>
             <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'left')" class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-sky-600 file:text-white hover:file:bg-sky-700" />
           </div>
-          <div class="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
+          <div class="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-1.5">
             <label class="block text-xs font-extrabold uppercase text-slate-700">Logo Derecho (ENLEF "Pedro Reynol Ozuna Henning")</label>
             <input type="file" accept="image/*" onchange="handleLogoUpload(event, 'right')" class="block w-full text-xs text-slate-600 file:mr-2 file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-amber-500 file:text-slate-950 hover:file:bg-amber-400" />
           </div>
         </div>
 
         <!-- Edición del Texto Central entre los dos Logotipos -->
-        <div class="space-y-3">
-          <h4 class="text-xs font-extrabold uppercase text-slate-700">Texto Institucional del Centro (Editable Línea por Línea)</h4>
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+        <div class="space-y-2.5">
+          <h4 class="text-xs font-extrabold uppercase text-slate-700">Texto Institucional del Centro (En Color Naranja)</h4>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-2.5">
             <div class="sm:col-span-2">
               <label class="block text-[11px] font-bold text-slate-500">Línea 1 (Dependencia Principal)</label>
               <input type="text" id="hdr-line-1" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold" />
@@ -951,7 +1042,7 @@
               <input type="text" id="hdr-line-4" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs font-bold" />
             </div>
             <div>
-              <label class="block text-[11px] font-bold text-slate-500">Línea 5 (Lugar / Lema / Clave)</label>
+              <label class="block text-[11px] font-bold text-slate-500">Línea 5 (Lugar / Clave)</label>
               <input type="text" id="hdr-line-5" oninput="updateHeaderLivePreview()" class="w-full rounded-lg border border-slate-300 px-3 py-1.5 text-xs" />
             </div>
           </div>
@@ -959,11 +1050,11 @@
 
         <div class="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-slate-200">
           <button type="button" onclick="resetHeaderConfigToDefault()" class="text-xs font-semibold text-rose-600 hover:underline">
-            Restaurar Escudos y Texto por Defecto
+            Restaurar Valores por Defecto
           </button>
-          <div class="flex gap-2">
-            <button type="button" onclick="closeHeaderConfigModal()" class="text-xs px-4 py-2 rounded-xl border border-slate-300 text-slate-600">Cerrar</button>
-            <button type="button" onclick="saveHeaderConfig()" class="text-xs font-bold px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow">Guardar Membrete Oficial</button>
+          <div class="flex gap-2 w-full sm:w-auto">
+            <button type="button" onclick="closeHeaderConfigModal()" class="flex-1 sm:flex-initial text-xs px-4 py-2 rounded-xl border border-slate-300 text-slate-600">Cerrar</button>
+            <button type="button" onclick="saveHeaderConfig()" class="flex-1 sm:flex-initial text-xs font-bold px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white shadow">Guardar Cambios</button>
           </div>
         </div>
       </div>
@@ -1011,8 +1102,8 @@
   </div>
 
   <!-- NOTIFICACIÓN TOAST -->
-  <div id="toast-notification" class="no-print fixed bottom-5 right-5 z-50 hidden bg-slate-900 text-white text-xs sm:text-sm font-semibold px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center gap-2">
-    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400"></i>
+  <div id="toast-notification" class="no-print fixed bottom-4 right-4 left-4 sm:left-auto z-50 hidden bg-slate-900 text-white text-xs font-semibold px-4 py-3 rounded-xl shadow-xl border border-slate-700 flex items-center justify-center sm:justify-start gap-2">
+    <i data-lucide="check-circle-2" class="w-4 h-4 text-emerald-400 shrink-0"></i>
     <span id="toast-message">Guardado correctamente</span>
   </div>
 
@@ -1022,32 +1113,33 @@
   <script>
     const STORAGE_KEY = 'ENLEF_NEM_PRO_DB_V1';
 
-    // Escudos SVG Institucionales por defecto (se reemplazan cuando el usuario sube su imagen PNG/JPG)
     const DEFAULT_LEFT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90">
-        <rect width="220" height="90" rx="8" fill="#ffffff" stroke="#334155" stroke-width="2"/>
-        <circle cx="42" cy="45" r="28" fill="#7f1d1d"/>
-        <text x="42" y="50" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="13" fill="#ffffff">SEP</text>
-        <text x="82" y="34" font-family="Arial" font-weight="bold" font-size="11" fill="#0f172a">SECRETARÍA DE</text>
-        <text x="82" y="49" font-family="Arial" font-weight="bold" font-size="11" fill="#0f172a">EDUCACIÓN</text>
-        <text x="82" y="64" font-family="Arial" font-size="9" fill="#475569">GOBIERNO DE CHIAPAS</text>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100">
+        <rect width="240" height="100" rx="10" fill="#ffffff" stroke="#334155" stroke-width="2.5"/>
+        <circle cx="46" cy="50" r="32" fill="#7f1d1d"/>
+        <text x="46" y="55" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="15" fill="#ffffff">SEP</text>
+        <text x="88" y="36" font-family="Arial" font-weight="bold" font-size="13" fill="#0f172a">SECRETARÍA DE</text>
+        <text x="88" y="53" font-family="Arial" font-weight="bold" font-size="13" fill="#0f172a">EDUCACIÓN</text>
+        <text x="88" y="70" font-family="Arial" font-weight="bold" font-size="10" fill="#ea580c">GOBIERNO DE CHIAPAS</text>
       </svg>
     `);
 
     const DEFAULT_RIGHT_LOGO = 'data:image/svg+xml;utf8,' + encodeURIComponent(`
-      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 220 90">
-        <rect width="220" height="90" rx="8" fill="#ffffff" stroke="#1e3a8a" stroke-width="2"/>
-        <circle cx="178" cy="45" r="28" fill="#1e3a8a"/>
-        <text x="178" y="50" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="12" fill="#f59e0b">ENLEF</text>
-        <text x="14" y="34" font-family="Arial" font-weight="bold" font-size="10" fill="#0f172a">ESCUELA NORMAL</text>
-        <text x="14" y="48" font-family="Arial" font-weight="bold" font-size="9" fill="#1e3a8a">"PEDRO REYNOL</text>
-        <text x="14" y="61" font-family="Arial" font-weight="bold" font-size="9" fill="#1e3a8a">OZUNA HENNING"</text>
+      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 240 100">
+        <rect width="240" height="100" rx="10" fill="#ffffff" stroke="#1e3a8a" stroke-width="2.5"/>
+        <circle cx="192" cy="50" r="32" fill="#1e3a8a"/>
+        <text x="192" y="55" text-anchor="middle" font-family="Arial" font-weight="bold" font-size="13" fill="#f59e0b">ENLEF</text>
+        <text x="14" y="36" font-family="Arial" font-weight="bold" font-size="12" fill="#0f172a">ESCUELA NORMAL</text>
+        <text x="14" y="52" font-family="Arial" font-weight="bold" font-size="10.5" fill="#ea580c">"PEDRO REYNOL</text>
+        <text x="14" y="67" font-family="Arial" font-weight="bold" font-size="10.5" fill="#ea580c">OZUNA HENNING"</text>
       </svg>
     `);
 
     const DEFAULT_HEADER_CONFIG = {
       leftLogo: DEFAULT_LEFT_LOGO,
       rightLogo: DEFAULT_RIGHT_LOGO,
+      logoSize: 96,
+      textColor: '#ea580c',
       line1: 'SECRETARÍA DE EDUCACIÓN',
       line2: 'SUBSECRETARÍA DE EDUCACIÓN ESTATAL',
       line3: 'DIRECCIÓN DE EDUCACIÓN SUPERIOR',
@@ -1077,7 +1169,6 @@
       'Taller deportivo'
     ];
 
-    // Banco Curado de Juegos Recomendados bajo el marco de la Nueva Escuela Mexicana (NEM)
     const INITIAL_NEM_GAMES = [
       {
         id: 'game-1',
@@ -1230,7 +1321,7 @@
           subject: 'Estrategias alternativas para la inclusión',
           author: 'Docente en Formación ENLEF',
           instructor: 'Catedrático(a) de la Asignatura',
-          date: '13 de octubre de 2026',
+          date: '14 de octubre de 2026',
           intro: 'La práctica pedagógica de la Educación Física en el nivel de Secundaria (Fase 6 de la Nueva Escuela Mexicana) plantea desafíos organizativos y didácticos significativos cuando se atienden grupos numerosos de entre 30 y 40 estudiantes con recursos materiales limitados.\nEl presente documento expone una propuesta de intervención estructurada bajo la modalidad de circuito de acción motriz rotativo, diseñada desde la perspectiva de la inclusión, el alto tiempo de compromiso motor y el resguardo absoluto de la integridad física y legal del estudiantado y del docente en formación.',
           body: 'De acuerdo con los planteamientos de la Secretaría de Educación Pública (SEP, 2022), el Campo Formativo De lo Humano y lo Comunitario promueve que las y los adolescentes reconozcan sus potencialidades motrices, expresivas y de relación mediante experiencias colectivas que erradiquen cualquier forma de exclusión.\nPara eliminar las filas pasivas y los tiempos muertos en la cancha escolar, se implementaron cuatro estaciones simultáneas utilizando colchonetas, palos de golf de plástico, conos y aros. En la estación de colchonetas se sustituyeron las ejecuciones gimnásticas de riesgo cervical por la dinámica denominada El Engrane Cooperativo en posición decúbito dorsal, garantizando el fortalecimiento abdominal y la coordinación intersegmentaria sin requerir manipulación o contacto físico por parte del educador físico (Sánchez Bañuelos, 2003).\nAsimismo, a través de retos como El Cruce del Río y Las Camillas Espaciales, se minimizaron las Barreras para el Aprendizaje y la Participación (BAP), logrando que el éxito motriz dependiera de la comunicación táctica y la empatía grupal.',
           conclusions: 'Se concluye que la organización mediante estaciones cooperativas y reglas de compañero activo en espejo transforma la escasez de material didáctico en una oportunidad pedagógica para consolidar la convivencia escolar, la autonomía motriz y la seguridad física en el patio.',
@@ -1334,7 +1425,7 @@
           docentes: 'Docente en Formación ENLEF',
           nivel: 'Secundaria',
           fase: 'Fase 6 (1º, 2º y 3º Secundaria)',
-          grado: '1º / 2º',
+          grado: '1º y 2º',
           grupo: 'A (38 Alumnos)',
           mes: 'Octubre',
           fecha: 'Semana de Práctica Intensiva',
@@ -1391,7 +1482,12 @@
         DEFAULT_SUBJECTS.forEach(sub => {
           if (!parsed.subjects.includes(sub)) parsed.subjects.push(sub);
         });
-        if (!parsed.headerConfig) parsed.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+        if (!parsed.headerConfig) {
+          parsed.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+        } else {
+          if (!parsed.headerConfig.logoSize) parsed.headerConfig.logoSize = 96;
+          if (!parsed.headerConfig.textColor) parsed.headerConfig.textColor = '#ea580c';
+        }
         if (!parsed.apaDocs || parsed.apaDocs.length === 0) parsed.apaDocs = JSON.parse(JSON.stringify(INITIAL_STATE.apaDocs));
         if (!parsed.activeApaId) parsed.activeApaId = parsed.apaDocs[0].id;
         if (!parsed.nemGames || parsed.nemGames.length === 0) parsed.nemGames = JSON.parse(JSON.stringify(INITIAL_NEM_GAMES));
@@ -1428,7 +1524,7 @@
       const toast = document.getElementById('toast-notification');
       document.getElementById('toast-message').textContent = msg;
       toast.classList.remove('hidden');
-      setTimeout(() => toast.classList.add('hidden'), 3000);
+      setTimeout(() => toast.classList.add('hidden'), 2800);
     }
 
     // =========================================================================
@@ -1441,10 +1537,10 @@
         const btn = document.getElementById(`tab-btn-${m}`);
         if (m === tabName) {
           sec.classList.remove('hidden');
-          btn.className = 'nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow';
+          btn.className = 'nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition bg-sky-600 text-white shadow';
         } else {
           sec.classList.add('hidden');
-          btn.className = 'nav-tab-btn flex items-center gap-1.5 px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700';
+          btn.className = 'nav-tab-btn flex items-center gap-1.5 px-2.5 sm:px-3 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition text-slate-300 hover:bg-slate-700';
         }
       });
 
@@ -1471,25 +1567,28 @@
     }
 
     // =========================================================================
-    // CONFIGURADOR DE MEMBRETE OFICIAL Y LOGOTIPOS (IZQUIERDO, CENTRAL Y DERECHO)
+    // CONFIGURADOR DE MEMBRETE OFICIAL: LOGOTIPOS GRANDES AJUSTABLES + TEXTO NARANJA
     // =========================================================================
     function buildInstitutionalHeaderHTML() {
       const cfg = appState.headerConfig || DEFAULT_HEADER_CONFIG;
+      const sizePx = Number(cfg.logoSize) || 96;
+      const orangeColor = cfg.textColor || '#ea580c';
+
       return `
-        <table style="width: 100%; border-collapse: collapse; margin-bottom: 10px; border-bottom: 2px solid #000000; padding-bottom: 6px;">
+        <table style="width: 100%; border-collapse: collapse; margin-bottom: 12px; border-bottom: 2.5px solid ${orangeColor}; padding-bottom: 8px;">
           <tr>
-            <td style="width: 22%; text-align: left; vertical-align: middle; border: none !important; padding: 4px;">
-              <img src="${cfg.leftLogo}" alt="Logo Secretaría de Educación" style="max-height: 68px; max-width: 165px; object-fit: contain;" />
+            <td style="width: 24%; text-align: left; vertical-align: middle; border: none !important; padding: 4px;">
+              <img src="${cfg.leftLogo}" alt="Logo Secretaría de Educación" style="height: ${sizePx}px; max-height: ${sizePx}px; width: auto; max-width: 220px; object-fit: contain; display: block;" />
             </td>
-            <td style="width: 56%; text-align: center; vertical-align: middle; border: none !important; padding: 4px; line-height: 1.25;">
-              <div style="font-size: 10pt; font-weight: 800; text-transform: uppercase;">${escapeHtml(cfg.line1)}</div>
-              <div style="font-size: 9pt; font-weight: 700; text-transform: uppercase;">${escapeHtml(cfg.line2)}</div>
-              <div style="font-size: 8.5pt; font-weight: 700; text-transform: uppercase;">${escapeHtml(cfg.line3)}</div>
-              <div style="font-size: 9pt; font-weight: 800; text-transform: uppercase; margin-top: 2px;">${escapeHtml(cfg.line4)}</div>
-              <div style="font-size: 8pt; font-weight: 600;">${escapeHtml(cfg.line5)}</div>
+            <td class="header-orange-text" style="width: 52%; text-align: center; vertical-align: middle; border: none !important; padding: 4px 8px; line-height: 1.3; color: ${orangeColor} !important; -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important;">
+              <div style="font-size: 11pt; font-weight: 800; text-transform: uppercase; color: ${orangeColor} !important;">${escapeHtml(cfg.line1)}</div>
+              <div style="font-size: 9.5pt; font-weight: 700; text-transform: uppercase; color: ${orangeColor} !important;">${escapeHtml(cfg.line2)}</div>
+              <div style="font-size: 9pt; font-weight: 700; text-transform: uppercase; color: ${orangeColor} !important;">${escapeHtml(cfg.line3)}</div>
+              <div style="font-size: 9.5pt; font-weight: 800; text-transform: uppercase; margin-top: 2px; color: ${orangeColor} !important;">${escapeHtml(cfg.line4)}</div>
+              <div style="font-size: 8.5pt; font-weight: 700; color: ${orangeColor} !important;">${escapeHtml(cfg.line5)}</div>
             </td>
-            <td style="width: 22%; text-align: right; vertical-align: middle; border: none !important; padding: 4px;">
-              <img src="${cfg.rightLogo}" alt="Logo ENLEF" style="max-height: 68px; max-width: 165px; object-fit: contain; margin-left: auto;" />
+            <td style="width: 24%; text-align: right; vertical-align: middle; border: none !important; padding: 4px;">
+              <img src="${cfg.rightLogo}" alt="Logo ENLEF" style="height: ${sizePx}px; max-height: ${sizePx}px; width: auto; max-width: 220px; object-fit: contain; display: block; margin-left: auto;" />
             </td>
           </tr>
         </table>
@@ -1503,6 +1602,8 @@
       document.getElementById('hdr-line-3').value = cfg.line3 || '';
       document.getElementById('hdr-line-4').value = cfg.line4 || '';
       document.getElementById('hdr-line-5').value = cfg.line5 || '';
+      document.getElementById('hdr-logo-size').value = cfg.logoSize || 96;
+      document.getElementById('hdr-text-color').value = cfg.textColor || '#ea580c';
       updateHeaderLivePreview();
       const modal = document.getElementById('header-config-modal');
       modal.classList.remove('hidden');
@@ -1527,18 +1628,26 @@
           appState.headerConfig.rightLogo = e.target.result;
         }
         updateHeaderLivePreview();
-        showToast(`Logotipo ${side === 'left' ? 'izquierdo (Secretaría)' : 'derecho (ENLEF)'} cargado`);
+        showToast(`Logotipo ${side === 'left' ? 'izquierdo (Secretaría)' : 'derecho (ENLEF)'} actualizado`);
       };
       reader.readAsDataURL(file);
     }
 
     function updateHeaderLivePreview() {
       if (!appState.headerConfig) appState.headerConfig = { ...DEFAULT_HEADER_CONFIG };
+      const sizeVal = Number(document.getElementById('hdr-logo-size').value) || 96;
+      const colorVal = document.getElementById('hdr-text-color').value || '#ea580c';
+
+      appState.headerConfig.logoSize = sizeVal;
+      appState.headerConfig.textColor = colorVal;
       appState.headerConfig.line1 = document.getElementById('hdr-line-1').value;
       appState.headerConfig.line2 = document.getElementById('hdr-line-2').value;
       appState.headerConfig.line3 = document.getElementById('hdr-line-3').value;
       appState.headerConfig.line4 = document.getElementById('hdr-line-4').value;
       appState.headerConfig.line5 = document.getElementById('hdr-line-5').value;
+
+      const sizeDesc = sizeVal >= 120 ? 'Extra Grande' : sizeVal >= 95 ? 'Grande' : sizeVal >= 75 ? 'Mediano' : 'Compacto';
+      document.getElementById('logo-size-label').textContent = `${sizeVal} px (${sizeDesc})`;
       document.getElementById('header-live-preview').innerHTML = buildInstitutionalHeaderHTML();
     }
 
@@ -1547,7 +1656,7 @@
       persistState();
       renderPrintPreview();
       closeHeaderConfigModal();
-      showToast('Membrete y logotipos guardados para todos tus documentos');
+      showToast('Tamaño de logos y texto naranja guardados');
     }
 
     function resetHeaderConfigToDefault() {
@@ -1598,7 +1707,7 @@
         document.getElementById('task-subject').value = detected;
         const bar = document.getElementById('attachment-status-bar');
         bar.classList.remove('hidden');
-        document.getElementById('attachment-status-text').innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i> Asignatura detectada automáticamente por contexto:`;
+        document.getElementById('attachment-status-text').innerHTML = `<i data-lucide="sparkles" class="w-4 h-4"></i> Materia detectada automáticamente:`;
         document.getElementById('detected-subject-pill').textContent = detected;
         lucide.createIcons();
       }
@@ -1651,7 +1760,6 @@
       document.getElementById('detected-subject-pill').textContent = `Materia: ${detectedSubject}`;
 
       generateAcademicOutlineFromForm();
-      // Guardar automáticamente en el tablero de control de entregas
       saveTask(new Event('submit'));
       showToast(`Rúbrica "${file.name}" clasificada en ${detectedSubject}`);
     }
@@ -1719,7 +1827,7 @@ ASIGNATURA: ${subject.toUpperCase()}
 TÍTULO DEL TRABAJO: ${title}
 
 1. PORTADA ESTUDIANTIL APA 7ma EDICIÓN
-   - Membrete oficial con logotipos de Secretaría de Educación y ENLEF.
+   - Membrete oficial en color naranja con logotipos de Secretaría de Educación y ENLEF.
    - Título centrado en negritas, Autor, Asignatura, Docente y Fecha.
 
 2. INTRODUCCIÓN
@@ -1970,7 +2078,7 @@ TÍTULO DEL TRABAJO: ${title}
     }
 
     // =========================================================================
-    // MÓDULO 4 (NUEVO): CREADOR DE DOCUMENTOS EN FORMATO APA 7ma EDICIÓN
+    // MÓDULO 4: CREADOR DE DOCUMENTOS EN FORMATO APA 7ma EDICIÓN
     // =========================================================================
     function getActiveApaDoc() {
       let doc = appState.apaDocs.find(d => d.id === appState.activeApaId);
@@ -1986,7 +2094,7 @@ TÍTULO DEL TRABAJO: ${title}
       if (!sel) return;
       sel.innerHTML = appState.apaDocs.map(d => `
         <option value="${d.id}" ${d.id === appState.activeApaId ? 'selected' : ''}>
-          ${escapeHtml(d.title.substring(0, 48))} (${escapeHtml(d.subject.substring(0, 25))}...)
+          ${escapeHtml(d.title.substring(0, 36))}...
         </option>
       `).join('');
     }
@@ -2004,7 +2112,7 @@ TÍTULO DEL TRABAJO: ${title}
       document.getElementById('apa-subject').value = doc.subject || appState.subjects[0];
       document.getElementById('apa-author').value = doc.author || 'Docente en Formación ENLEF';
       document.getElementById('apa-instructor').value = doc.instructor || '';
-      document.getElementById('apa-date').value = doc.date || '13 de octubre de 2026';
+      document.getElementById('apa-date').value = doc.date || '14 de octubre de 2026';
       document.getElementById('apa-intro').value = doc.intro || '';
       document.getElementById('apa-body').value = doc.body || '';
       document.getElementById('apa-conclusions').value = doc.conclusions || '';
@@ -2074,7 +2182,7 @@ TÍTULO DEL TRABAJO: ${title}
       appState.activeApaId = existing.id;
       persistState();
       switchTab('apa7');
-      showToast('Tarea vinculada y estructurada en Formato APA 7');
+      showToast('Tarea vinculada en Formato APA 7');
     }
 
     function sendFormTaskToApaEditor() {
@@ -2170,15 +2278,14 @@ TÍTULO DEL TRABAJO: ${title}
 
       return `
         <div class="apa-page max-w-4xl mx-auto p-4 sm:p-8">
-          <!-- PORTADA OFICIAL ESTUDIANTIL APA 7 CON LOGOS Y MEMBRETE -->
           <div style="min-height: 88vh; display: flex; flex-direction: column; justify-content: space-between;">
             <div>
               ${buildInstitutionalHeaderHTML()}
               <div style="text-align: right; font-size: 11pt; margin-top: 6px;">1</div>
             </div>
 
-            <div style="text-align: center; margin: 60px auto; max-width: 85%;">
-              <p style="font-weight: bold; font-size: 14pt; margin-bottom: 36pt; line-height: 2.0;">
+            <div style="text-align: center; margin: 50px auto; max-width: 85%;">
+              <p style="font-weight: bold; font-size: 14pt; margin-bottom: 32pt; line-height: 2.0;">
                 ${escapeHtml(doc.title)}
               </p>
               <p style="font-size: 12pt; margin-bottom: 4pt;">${escapeHtml(doc.author)}</p>
@@ -2193,31 +2300,26 @@ TÍTULO DEL TRABAJO: ${title}
             </div>
           </div>
 
-          <!-- CUERPO DEL TRABAJO EN PÁGINA NUEVA -->
           <div class="apa-page-break" style="padding-top: 15px;">
             ${buildInstitutionalHeaderHTML()}
             <div style="text-align: right; font-size: 11pt; margin-bottom: 12px;">2</div>
 
-            <!-- Título Nivel 1 APA 7: Centrado y en Negrita -->
             <h2 style="text-align: center; font-weight: bold; font-size: 12pt; margin-bottom: 12pt;">
               ${escapeHtml(doc.title)}
             </h2>
 
             ${formatParagraphs(doc.intro)}
 
-            <!-- Encabezado Nivel 1 APA 7: Desarrollo -->
             <h3 style="text-align: center; font-weight: bold; font-size: 12pt; margin-top: 18pt; margin-bottom: 8pt;">
               Desarrollo y Fundamentación Pedagógica
             </h3>
             ${formatParagraphs(doc.body)}
 
-            <!-- Encabezado Nivel 1 APA 7: Conclusiones -->
             <h3 style="text-align: center; font-weight: bold; font-size: 12pt; margin-top: 18pt; margin-bottom: 8pt;">
               Conclusiones
             </h3>
             ${formatParagraphs(doc.conclusions)}
 
-            <!-- REFERENCIAS CON SANGRÍA FRANCESA -->
             <div class="apa-page-break" style="padding-top: 15px;">
               ${buildInstitutionalHeaderHTML()}
               <h3 style="text-align: center; font-weight: bold; font-size: 12pt; margin-top: 12pt; margin-bottom: 14pt;">
@@ -2251,11 +2353,11 @@ TÍTULO DEL TRABAJO: ${title}
       a.download = `APA7_${doc.title.substring(0, 30).replace(/\s+/g, '_')}.doc`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Documento descargado en formato Word (.doc) con formato APA 7');
+      showToast('Documento descargado en formato Word (.doc)');
     }
 
     // =========================================================================
-    // MÓDULO 5 (NUEVO): RECOMENDADOR AUTOMATIZADO DE JUEGOS NEM
+    // MÓDULO 5: RECOMENDADOR AUTOMATIZADO DE JUEGOS NEM
     // =========================================================================
     function renderRecommendedGames() {
       const container = document.getElementById('games-catalog-container');
@@ -2277,7 +2379,7 @@ TÍTULO DEL TRABAJO: ${title}
       if (filtered.length === 0) {
         container.innerHTML = `
           <div class="col-span-full text-center py-8 bg-slate-50 rounded-xl border border-dashed border-slate-300 text-slate-600 text-sm space-y-2">
-            <p>No hay juegos con esa combinación exacta. Toca el botón para generar actividades nuevas al instante:</p>
+            <p>No hay juegos con esa combinación exacta. Toca el botón para generar actividades nuevas:</p>
             <button onclick="generateDynamicNemGames()" class="bg-amber-500 text-slate-950 font-bold text-xs px-4 py-2 rounded-xl">
               ✨ Generar Juegos para esta Fase y Categoría
             </button>
@@ -2286,9 +2388,9 @@ TÍTULO DEL TRABAJO: ${title}
       }
 
       container.innerHTML = filtered.map(g => `
-        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 sm:p-5 flex flex-col justify-between gap-4 hover:border-sky-300 transition">
+        <div class="rounded-2xl border border-slate-200 bg-white shadow-sm p-4 flex flex-col justify-between gap-3.5 hover:border-sky-300 transition">
           <div class="space-y-2">
-            <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex flex-wrap items-center justify-between gap-1.5">
               <span class="text-[11px] font-extrabold uppercase px-2.5 py-0.5 rounded-full bg-sky-100 text-sky-900">
                 ${escapeHtml(g.fase)}
               </span>
@@ -2297,7 +2399,7 @@ TÍTULO DEL TRABAJO: ${title}
               </span>
             </div>
 
-            <h4 class="font-extrabold text-slate-900 text-base">${escapeHtml(g.titulo)}</h4>
+            <h4 class="font-extrabold text-slate-900 text-sm sm:text-base">${escapeHtml(g.titulo)}</h4>
             <p class="text-xs text-slate-600"><strong>PDA Vinculado:</strong> ${escapeHtml(g.pda)}</p>
             <p class="text-xs text-sky-900 bg-sky-50 p-2 rounded-lg border border-sky-100">
               <strong>Criterio de Evaluación:</strong> ${escapeHtml(g.evaluacion)}
@@ -2309,16 +2411,16 @@ TÍTULO DEL TRABAJO: ${title}
               <div><strong>• Final:</strong> ${escapeHtml(g.faseFinal)}</div>
             </div>
 
-            <div class="pt-2 flex flex-wrap gap-2 text-[11px] text-slate-500">
+            <div class="pt-1.5 flex flex-wrap gap-1.5 text-[11px] text-slate-500">
               <span class="bg-slate-100 px-2 py-0.5 rounded"><strong>Estrategias:</strong> ${escapeHtml(g.estrategias)}</span>
               <span class="bg-slate-100 px-2 py-0.5 rounded"><strong>Materiales:</strong> ${escapeHtml(g.materiales)}</span>
             </div>
           </div>
 
           <div class="pt-3 border-t border-slate-100 flex items-center justify-between gap-2">
-            <span class="text-[11px] text-slate-400">Listo para Plantilla Oficial</span>
-            <button type="button" onclick="sendGameToActivePlan('${g.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-4 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
-              <i data-lucide="plus-circle" class="w-4 h-4"></i> Enviar a mi Planeación Activa
+            <span class="text-[11px] text-slate-400">Plantilla Oficial</span>
+            <button type="button" onclick="sendGameToActivePlan('${g.id}')" class="bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs px-3.5 py-2 rounded-xl flex items-center gap-1.5 shadow-sm transition">
+              <i data-lucide="plus-circle" class="w-4 h-4 shrink-0"></i> Enviar a Planeación Activa
             </button>
           </div>
         </div>
@@ -2395,7 +2497,6 @@ TÍTULO DEL TRABAJO: ${title}
         estilos: game.estilos,
         materiales: game.materiales
       });
-      // Sincronizar puntaje por defecto en los alumnos de esa planeación
       (plan.students || []).forEach(st => {
         if (!st.scores) st.scores = {};
         st.scores[`s${nextNum}`] = 4;
@@ -2421,7 +2522,7 @@ TÍTULO DEL TRABAJO: ${title}
       const sel = document.getElementById('plan-selector');
       sel.innerHTML = appState.plans.map(p => `
         <option value="${p.id}" ${p.id === appState.activePlanId ? 'selected' : ''}>
-          ${escapeHtml(p.escuela)} — ${escapeHtml(p.grado)} ${escapeHtml(p.grupo)} (${p.sessions.length} sesiones)
+          ${escapeHtml(p.escuela.substring(0, 32))} — ${escapeHtml(p.grado)} ${escapeHtml(p.grupo)} (${p.sessions.length} ses.)
         </option>
       `).join('');
     }
@@ -2433,14 +2534,26 @@ TÍTULO DEL TRABAJO: ${title}
       showToast('Planeación cargada');
     }
 
+    function ensureSelectHasValue(selectEl, val) {
+      if (!selectEl || !val) return;
+      const exists = Array.from(selectEl.options).some(opt => opt.value === String(val));
+      if (!exists) {
+        const opt = document.createElement('option');
+        opt.value = val;
+        opt.textContent = val;
+        selectEl.appendChild(opt);
+      }
+      selectEl.value = val;
+    }
+
     function renderEjesCheckboxes(selectedIds = []) {
       const container = document.getElementById('ejes-container');
       container.innerHTML = EJES_ARTICULADORES.map(eje => {
         const checked = selectedIds.includes(eje.id);
         return `
-          <label class="cursor-pointer flex items-center gap-2.5 p-2.5 rounded-xl border ${checked ? 'bg-sky-50 border-sky-400 text-sky-950 font-semibold' : 'bg-slate-50 border-slate-200 text-slate-700'} text-xs transition">
-            <input type="checkbox" name="plan-eje" value="${eje.id}" ${checked ? 'checked' : ''} onchange="updateEjesVisuals()" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500" />
-            <span>${escapeHtml(eje.nombre)}</span>
+          <label class="cursor-pointer flex items-center gap-2 p-2.5 rounded-xl border ${checked ? 'bg-sky-50 border-sky-400 text-sky-950 font-semibold' : 'bg-slate-50 border-slate-200 text-slate-700'} text-xs transition">
+            <input type="checkbox" name="plan-eje" value="${eje.id}" ${checked ? 'checked' : ''} onchange="updateEjesVisuals()" class="w-4 h-4 rounded text-sky-600 focus:ring-sky-500 shrink-0" />
+            <span class="leading-tight">${escapeHtml(eje.nombre)}</span>
           </label>
         `;
       }).join('');
@@ -2454,15 +2567,15 @@ TÍTULO DEL TRABAJO: ${title}
     function populatePlanForm(plan) {
       document.getElementById('plan-escuela').value = plan.escuela || '';
       document.getElementById('plan-docentes').value = plan.docentes || '';
-      document.getElementById('plan-nivel').value = plan.nivel || 'Primaria';
-      document.getElementById('plan-fase').value = plan.fase || 'Fase 4 (3º y 4º Primaria)';
-      document.getElementById('plan-grado').value = plan.grado || '';
+      ensureSelectHasValue(document.getElementById('plan-nivel'), plan.nivel || 'Primaria');
+      ensureSelectHasValue(document.getElementById('plan-fase'), plan.fase || 'Fase 4 (3º y 4º Primaria)');
+      ensureSelectHasValue(document.getElementById('plan-grado'), plan.grado || '4º');
       document.getElementById('plan-grupo').value = plan.grupo || '';
-      document.getElementById('plan-mes').value = plan.mes || '';
+      ensureSelectHasValue(document.getElementById('plan-mes'), plan.mes || 'Abril');
       document.getElementById('plan-fecha').value = plan.fecha || '';
-      document.getElementById('plan-unidad').value = plan.unidad || '';
-      document.getElementById('plan-num-sesiones').value = plan.sessions.length;
-      document.getElementById('plan-tiempo').value = plan.tiempo || '50 min';
+      ensureSelectHasValue(document.getElementById('plan-unidad'), plan.unidad || 'Unidad 1');
+      ensureSelectHasValue(document.getElementById('plan-num-sesiones'), String(plan.sessions.length));
+      ensureSelectHasValue(document.getElementById('plan-tiempo'), plan.tiempo || '50 min');
       document.getElementById('plan-campo').value = plan.campo || '';
       document.getElementById('plan-contenido').value = plan.contenido || '';
       document.getElementById('plan-diagnostico').value = plan.diagnostico || '';
@@ -2472,31 +2585,59 @@ TÍTULO DEL TRABAJO: ${title}
       renderSessionsBlocks(plan.sessions || []);
     }
 
+    // AJUSTE AUTOMÁTICO DE SESIONES AL SELECCIONAR EL NÚMERO EN LA LISTA DESPLEGABLE
+    function handleSessionCountSelectChange(targetCountStr) {
+      const targetCount = parseInt(targetCountStr, 10);
+      if (isNaN(targetCount) || targetCount < 1) return;
+      const currentSessions = collectSessionsFromDOM();
+
+      if (targetCount > currentSessions.length) {
+        for (let i = currentSessions.length + 1; i <= targetCount; i++) {
+          currentSessions.push({
+            numero: i,
+            evaluacion: `Indicador Sesión ${i}: Ejecuta patrones básicos de movimiento con control y colabora respetando acuerdos de convivencia.`,
+            faseInicial: '5 min • Movilidad articular cefalocaudal y activación lúdica grupal.',
+            faseDesarrollo: '40 min • Secuencia motriz principal con variantes de inclusión y participación simultánea.',
+            faseFinal: '5 min • Vuelta a la calma, respiración y reflexión grupal.',
+            estrategias: 'Juegos motores, Juegos cooperativos',
+            estilos: 'Descubrimiento guiado, Asignación de tareas',
+            materiales: 'Conos, aros, pelotas.'
+          });
+        }
+        renderSessionsBlocks(currentSessions);
+        showToast(`Se ajustó la plantilla a ${targetCount} sesiones`);
+      } else if (targetCount < currentSessions.length) {
+        const trimmed = currentSessions.slice(0, targetCount);
+        renderSessionsBlocks(trimmed);
+        showToast(`Se ajustó la plantilla a ${targetCount} sesiones`);
+      }
+    }
+
     function renderSessionsBlocks(sessions) {
       const container = document.getElementById('sessions-container');
-      document.getElementById('plan-num-sesiones').value = sessions.length;
+      ensureSelectHasValue(document.getElementById('plan-num-sesiones'), String(sessions.length));
 
       container.innerHTML = sessions.map((s, idx) => `
         <div class="session-card bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden" data-session-idx="${idx}">
-          <div class="bg-slate-100 border-b border-slate-200 px-5 py-3 flex items-center justify-between">
+          <div class="bg-slate-100 border-b border-slate-200 px-4 sm:px-5 py-2.5 flex items-center justify-between gap-2">
             <div class="flex items-center gap-2">
               <span class="px-2.5 py-1 rounded-lg bg-slate-900 text-white font-extrabold text-xs">SESIÓN ${idx + 1}</span>
-              <span class="text-xs font-semibold text-slate-600">Matriz de Dosificación por Sesión</span>
+              <span class="hidden sm:inline text-xs font-semibold text-slate-600">Matriz de Dosificación por Sesión</span>
             </div>
             <button type="button" onclick="removeSessionBlock(${idx})" class="text-xs text-rose-600 hover:bg-rose-50 px-2.5 py-1 rounded-lg font-semibold flex items-center gap-1">
-              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar Sesión
+              <i data-lucide="trash-2" class="w-3.5 h-3.5"></i> Eliminar
             </button>
           </div>
 
-          <div class="p-4 sm:p-5 space-y-4">
+          <div class="p-3.5 sm:p-5 space-y-3.5">
             <div>
               <label class="block text-xs font-bold uppercase text-sky-800 mb-1">
-                Criterio / Indicador de Evaluación de la Sesión ${idx + 1} (Técnico-Motriz y Actitudinal) *
+                Criterio / Indicador de Evaluación de la Sesión ${idx + 1} *
               </label>
-              <input type="text" required class="sess-evaluacion w-full rounded-xl border border-sky-300 bg-sky-50/40 px-3 py-2 text-sm font-medium focus:bg-white focus:ring-2 focus:ring-sky-500" value="${escapeHtml(s.evaluacion)}" />
+              <input type="text" required class="sess-evaluacion w-full rounded-xl border border-sky-300 bg-sky-50/40 px-3 py-2 text-xs sm:text-sm font-medium focus:bg-white focus:ring-2 focus:ring-sky-500" value="${escapeHtml(s.evaluacion)}" />
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-3.5">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Fase Inicial (ej. 5-10 min) *</label>
                 <textarea rows="4" required class="sess-inicial w-full rounded-xl border border-slate-300 p-2.5 text-xs sm:text-sm">${escapeHtml(s.faseInicial)}</textarea>
@@ -2511,7 +2652,7 @@ TÍTULO DEL TRABAJO: ${title}
               </div>
             </div>
 
-            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-3.5 pt-1">
               <div>
                 <label class="block text-xs font-bold uppercase text-slate-600 mb-1">Estrategias Didácticas *</label>
                 <input type="text" required class="sess-estrategias w-full rounded-xl border border-slate-300 px-3 py-2 text-xs sm:text-sm" value="${escapeHtml(s.estrategias)}" />
@@ -2580,12 +2721,12 @@ TÍTULO DEL TRABAJO: ${title}
       plan.docentes = document.getElementById('plan-docentes').value.trim();
       plan.nivel = document.getElementById('plan-nivel').value;
       plan.fase = document.getElementById('plan-fase').value;
-      plan.grado = document.getElementById('plan-grado').value.trim();
+      plan.grado = document.getElementById('plan-grado').value;
       plan.grupo = document.getElementById('plan-grupo').value.trim();
-      plan.mes = document.getElementById('plan-mes').value.trim();
+      plan.mes = document.getElementById('plan-mes').value;
       plan.fecha = document.getElementById('plan-fecha').value.trim();
-      plan.unidad = document.getElementById('plan-unidad').value.trim();
-      plan.tiempo = document.getElementById('plan-tiempo').value.trim();
+      plan.unidad = document.getElementById('plan-unidad').value;
+      plan.tiempo = document.getElementById('plan-tiempo').value;
       plan.campo = document.getElementById('plan-campo').value.trim();
       plan.contenido = document.getElementById('plan-contenido').value.trim();
       plan.diagnostico = document.getElementById('plan-diagnostico').value.trim();
@@ -2762,12 +2903,12 @@ TÍTULO DEL TRABAJO: ${title}
       ).join('');
 
       theadRow.innerHTML = `
-        <th class="px-3 py-3 w-10 text-center">N°</th>
-        <th class="px-3 py-3 min-w-[190px]">Nombre del Alumno(a)</th>
+        <th class="px-2.5 py-3 w-8 text-center">N°</th>
+        <th class="px-3 py-3 min-w-[175px]">Nombre del Alumno(a)</th>
         ${sessionHeaders}
         <th class="px-2 py-3 text-center whitespace-nowrap bg-sky-950" title="Integración Grupal Transversal">Integración</th>
         <th class="px-3 py-3 text-center whitespace-nowrap">Promedio / Nivel</th>
-        <th class="px-3 py-3 min-w-[160px]">Observaciones / Ajustes</th>
+        <th class="px-3 py-3 min-w-[150px]">Observaciones</th>
         <th class="px-2 py-3 text-center">Acción</th>
       `;
 
@@ -2775,7 +2916,7 @@ TÍTULO DEL TRABAJO: ${title}
         tbody.innerHTML = `
           <tr>
             <td colspan="${plan.sessions.length + 5}" class="text-center py-8 text-slate-500 text-sm">
-              No hay alumnos en la lista. Usa el botón "Cargar Lista Rápida" o agrega un alumno arriba.
+              No hay alumnos en la lista. Usa el botón "Cargar Lista" o agrega un alumno arriba.
             </td>
           </tr>`;
         return;
@@ -2793,8 +2934,8 @@ TÍTULO DEL TRABAJO: ${title}
 
         return `
           <tr class="hover:bg-slate-50 transition">
-            <td class="px-3 py-2 text-center font-bold text-slate-500 text-xs">${idx + 1}</td>
-            <td class="px-3 py-2 font-semibold text-slate-900 text-xs sm:text-sm">${escapeHtml(st.name)}</td>
+            <td class="px-2.5 py-2 text-center font-bold text-slate-500 text-xs">${idx + 1}</td>
+            <td class="px-3 py-2 font-semibold text-slate-900 text-xs">${escapeHtml(st.name)}</td>
             ${sessionCells}
             <td class="px-1.5 py-2 text-center bg-sky-50/40">${renderScoreButton(st.id, 'trans', transVal)}</td>
             <td class="px-3 py-2 text-center whitespace-nowrap">
@@ -2803,7 +2944,7 @@ TÍTULO DEL TRABAJO: ${title}
               </span>
             </td>
             <td class="px-2 py-2">
-              <input type="text" value="${escapeHtml(st.obs || '')}" onchange="updateStudentObs('${st.id}', this.value)" placeholder="Nota individual..." class="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-sky-500 focus:outline-none" />
+              <input type="text" value="${escapeHtml(st.obs || '')}" onchange="updateStudentObs('${st.id}', this.value)" placeholder="Nota..." class="w-full text-xs border border-slate-200 rounded-lg px-2 py-1.5 focus:ring-1 focus:ring-sky-500 focus:outline-none" />
             </td>
             <td class="px-2 py-2 text-center">
               <button onclick="removeStudent('${st.id}')" class="text-rose-500 hover:bg-rose-50 p-1.5 rounded-lg" title="Eliminar alumno">
@@ -2826,7 +2967,7 @@ TÍTULO DEL TRABAJO: ${title}
       }[val] || { code: 'D', num: 4, cls: 'bg-emerald-600 text-white' };
 
       return `
-        <button type="button" onclick="cycleStudentScore('${studentId}', '${scoreKey}')" class="eval-btn px-2.5 py-1.5 rounded-xl font-extrabold text-xs border shadow-sm ${config.cls}">
+        <button type="button" onclick="cycleStudentScore('${studentId}', '${scoreKey}')" class="eval-btn px-2 py-1.5 rounded-xl font-extrabold text-xs border shadow-sm ${config.cls}">
           ${config.code} <span class="opacity-80 text-[10px]">(${config.num})</span>
         </button>
       `;
@@ -2953,11 +3094,11 @@ TÍTULO DEL TRABAJO: ${title}
       persistState();
       closeBulkStudentsModal();
       renderEvaluationTable(plan);
-      showToast(`${names.length} alumnos cargados en la Escala de Apreciación`);
+      showToast(`${names.length} alumnos cargados en la Escala`);
     }
 
     // =========================================================================
-    // MÓDULO 6: IMPRESIÓN OFICIAL (@media print) CON LOGOTIPOS Y EXPORTACIÓN
+    // MÓDULO 6: IMPRESIÓN OFICIAL (@media print) CON LOGOTIPOS GRANDES Y FIRMAS SIN ENCIMARSE
     // =========================================================================
     function setPrintMode(mode) {
       appState.printMode = mode;
@@ -2966,9 +3107,9 @@ TÍTULO DEL TRABAJO: ${title}
         const btn = document.getElementById(`btn-mode-${m}`);
         if (!btn) return;
         if (m === mode) {
-          btn.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
+          btn.className = 'flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl text-xs font-bold bg-sky-600 text-white shadow-sm flex items-center gap-1.5';
         } else {
-          btn.className = 'px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
+          btn.className = 'flex-1 sm:flex-initial justify-center px-3 py-2 rounded-xl text-xs font-bold bg-slate-100 text-slate-700 hover:bg-slate-200 flex items-center gap-1.5';
         }
       });
       renderPrintPreview();
@@ -3015,8 +3156,7 @@ TÍTULO DEL TRABAJO: ${title}
       `).join('');
 
       return `
-        <div class="text-black max-w-full">
-          <!-- Membrete Oficial con Logotipo Izquierdo (Secretaría), Texto Central y Logotipo Derecho (ENLEF) -->
+        <div class="text-black w-full">
           ${buildInstitutionalHeaderHTML()}
 
           <div class="text-center pb-2 mb-2">
@@ -3095,16 +3235,24 @@ TÍTULO DEL TRABAJO: ${title}
             </tbody>
           </table>
 
-          <div class="grid grid-cols-2 gap-8 mt-10 pt-6 text-center text-xs">
-            <div>
-              <div class="border-t border-black w-64 mx-auto pt-1 font-bold">${escapeHtml(plan.docentes)}</div>
-              <div class="text-slate-600">Docente(s) en Formación ENLEF</div>
-            </div>
-            <div>
-              <div class="border-t border-black w-64 mx-auto pt-1 font-bold">Vo. Bo. Titular / Asesor de Práctica</div>
-              <div class="text-slate-600">Firma y Sello Institucional</div>
-            </div>
-          </div>
+          <!-- Firmas separadas en tabla limpia para que jamás se encimen en celular ni en impresión -->
+          <table style="width: 100%; border-collapse: collapse; margin-top: 28px;">
+            <tr>
+              <td style="width: 48%; text-align: center; vertical-align: top; padding: 10px; border: none !important;">
+                <div style="border-top: 1px solid #000000; max-width: 260px; margin: 0 auto; padding-top: 5px; font-weight: 700; font-size: 9pt;">
+                  ${escapeHtml(plan.docentes)}
+                </div>
+                <div style="font-size: 8.5pt; color: #475569;">Docente(s) en Formación ENLEF</div>
+              </td>
+              <td style="width: 4%; border: none !important;"></td>
+              <td style="width: 48%; text-align: center; vertical-align: top; padding: 10px; border: none !important;">
+                <div style="border-top: 1px solid #000000; max-width: 260px; margin: 0 auto; padding-top: 5px; font-weight: 700; font-size: 9pt;">
+                  Vo. Bo. Titular / Asesor de Práctica
+                </div>
+                <div style="font-size: 8.5pt; color: #475569;">Firma y Sello Institucional</div>
+              </td>
+            </tr>
+          </table>
         </div>
       `;
     }
@@ -3142,8 +3290,7 @@ TÍTULO DEL TRABAJO: ${title}
       }).join('');
 
       return `
-        <div class="text-black max-w-full">
-          <!-- Membrete Oficial con Logotipo Izquierdo (Secretaría), Texto Central y Logotipo Derecho (ENLEF) -->
+        <div class="text-black w-full">
           ${buildInstitutionalHeaderHTML()}
 
           <div class="text-center pb-2 mb-2">
@@ -3209,7 +3356,9 @@ TÍTULO DEL TRABAJO: ${title}
           </div>
 
           <div class="mt-8 pt-4 text-center text-xs">
-            <div class="border-t border-black w-72 mx-auto pt-1 font-bold">Firma del Docente en Formación: ${escapeHtml(plan.docentes)}</div>
+            <div style="border-top: 1px solid #000; max-width: 280px; margin: 0 auto; padding-top: 4px; font-weight: bold;">
+              Firma del Docente en Formación: ${escapeHtml(plan.docentes)}
+            </div>
           </div>
         </div>
       `;
@@ -3254,7 +3403,7 @@ TÍTULO DEL TRABAJO: ${title}
       a.download = `Respaldo_ENLEF_NEM_${new Date().toISOString().split('T')[0]}.json`;
       a.click();
       URL.revokeObjectURL(url);
-      showToast('Respaldo JSON descargado (incluye logos, APA 7 y planeaciones)');
+      showToast('Respaldo JSON descargado');
     }
 
     function importFullBackupJSON(event) {
@@ -3296,9 +3445,6 @@ TÍTULO DEL TRABAJO: ${title}
         .replace(/'/g, '&#039;');
     }
 
-    // =========================================================================
-    // CONFIGURACIÓN PWA EMBEBIDA
-    // =========================================================================
     function setupPWA() {
       const svgIcon = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="96" fill="#0f172a"/><circle cx="256" cy="256" r="180" fill="#d97706"/><text x="50%" y="55%" dominant-baseline="middle" text-anchor="middle" font-family="Arial, sans-serif" font-weight="900" font-size="190" fill="#0f172a">EF</text></svg>`;
       const iconUrl = 'data:image/svg+xml;base64,' + btoa(svgIcon);
@@ -3326,7 +3472,7 @@ TÍTULO DEL TRABAJO: ${title}
 
       if ('serviceWorker' in navigator && (location.protocol === 'https:' || location.hostname === 'localhost' || location.hostname === '127.0.0.1')) {
         const swCode = `
-          const CACHE_NAME = 'enlef-nem-pwa-v2';
+          const CACHE_NAME = 'enlef-nem-pwa-v3';
           self.addEventListener('install', e => { self.skipWaiting(); });
           self.addEventListener('activate', e => { e.waitUntil(self.clients.claim()); });
           self.addEventListener('fetch', e => {
